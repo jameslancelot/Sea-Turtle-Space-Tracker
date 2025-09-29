@@ -20,8 +20,8 @@ export default async function handler(req, res) {
     switch (resource) {
       case 'launches':
         // FIXED: Fetch upcoming and past launches separately to avoid placeholder dates
-        const upcomingUrl = 'https://ll.thespacedevs.com/2.2.0/launch/upcoming/?lsp__name=SpaceX&limit=50';
-        const pastUrl = 'https://ll.thespacedevs.com/2.2.0/launch/previous/?lsp__name=SpaceX&limit=50';
+        const upcomingUrl = 'https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=100';
+        const pastUrl = 'https://ll.thespacedevs.com/2.2.0/launch/previous/?limit=100';
         
         try {
           console.log(`📍 Fetching upcoming from: ${upcomingUrl}`);
@@ -71,16 +71,16 @@ export default async function handler(req, res) {
         }
       
       case 'upcoming':
-        // Get upcoming SpaceX launches with confirmed dates
-        apiUrl = 'https://ll.thespacedevs.com/2.2.0/launch/upcoming/?lsp__name=SpaceX&limit=50';
+        // Get upcoming launches with confirmed dates
+        apiUrl = 'https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=100';
         break;
         
       case 'rockets':
-        apiUrl = 'https://ll.thespacedevs.com/2.2.0/config/launcher/?lsp__name=SpaceX';
+        apiUrl = 'https://ll.thespacedevs.com/2.2.0/config/launcher/';
         break;
-        
+
       case 'launchpads':
-        apiUrl = 'https://ll.thespacedevs.com/2.2.0/pad/?agency__name=SpaceX';
+        apiUrl = 'https://ll.thespacedevs.com/2.2.0/pad/';
         break;
         
       default:

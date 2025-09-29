@@ -1,0 +1,43 @@
+# GitHub Repository Settings
+
+## Short Description (for GitHub repo header)
+🐢🚀 Educational SpaceX launch tracker for PVPV/Rawlings Elementary School Sea Turtles. Real-time rocket launches with ocean-themed design. "Surfing to Success - From the Ocean to the Stars!"
+
+## About Section (longer description)
+An interactive SpaceX launch tracker designed for elementary school students at PVPV/Rawlings Elementary in Florida. Features real-time launch data, countdown timers, and educational content connecting sea turtle conservation with space exploration. Built with Next.js, React, and Tailwind CSS. Perfect for STEM education and classroom use.
+
+## Topics/Tags (add these to your repo)
+- spacex
+- education
+- elementary-school
+- stem-education
+- react
+- nextjs
+- tailwindcss
+- space
+- rockets
+- launch-tracker
+- educational-technology
+- k12-education
+- florida-schools
+- sea-turtles
+- science-education
+- classroom-tool
+- real-time-data
+- space-exploration
+- student-project
+- open-source
+
+## Website Field
+https://your-vercel-app.vercel.app (update after deployment)
+
+## Settings Recommendations
+- ✅ Public repository
+- ✅ Enable Issues (for bug reports and feature requests)
+- ✅ Enable Discussions (for teachers to share classroom ideas)
+- ✅ Add MIT License
+- ✅ Include README
+- ✅ Set main as default branch
+
+## Social Preview
+Consider adding a social preview image showing the Sea Turtle Space Tracker interface with the school branding visible.

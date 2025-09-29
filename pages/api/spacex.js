@@ -21,7 +21,13 @@ export default async function handler(req, res) {
   try {
     console.log(`🚀 Fetching SpaceX ${resource} from API...`);
     
-    const apiUrl = `https://api.spacexdata.com/v5/${resource}`;
+    // Different resources use different API versions!
+    // v5: launches (newer, more detailed)
+    // v4: everything else (rockets, launchpads, etc.)
+    const version = resource === 'launches' ? 'v5' : 'v4';
+    const apiUrl = `https://api.spacexdata.com/${version}/${resource}`;
+    console.log(`📍 Using ${version} endpoint: ${apiUrl}`);
+    
     const response = await fetch(apiUrl);
     
     if (!response.ok) {

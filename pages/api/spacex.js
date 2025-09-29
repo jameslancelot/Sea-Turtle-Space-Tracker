@@ -61,7 +61,7 @@ export default async function handler(req, res) {
           
           if (filteredResults.length > 0) {
             const dates = filteredResults.map(l => new Date(l.net));
-            console.log(`📅 Date range: ${Math.min(...dates).toISOString()} to ${Math.max(...dates).toISOString()}`);
+            console.log(`📅 Date range: ${new Date(Math.min(...dates)).toISOString()} to ${new Date(Math.max(...dates)).toISOString()}`);
           }
           
           return res.status(200).json(filteredResults);

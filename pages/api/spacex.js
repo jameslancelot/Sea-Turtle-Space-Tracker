@@ -1,7 +1,7 @@
 /**
  * Vercel Serverless API Route
  * Fetches space launch data from Launch Library 2 API
- * Launch Library 2 is the actively maintained successor to the old SpaceX API
+ * Filters out far-future placeholder dates and sorts by soonest first
  */
 
 export default async function handler(req, res) {
@@ -19,30 +19,28 @@ export default async function handler(req, res) {
     // Map our resources to Launch Library 2 endpoints
     switch (resource) {
       case 'launches':
-        // Get recent past launches and confirmed upcoming launches (not TBD placeholders)
-        // Use date filters to get real launches, not placeholder dates
+        // Get recent past launches and upcoming launches
+        // Use a wide date range but filter out unrealistic dates later
         const now = new Date();
-        const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
-        const oneYearFromNow = new Date(now.getFullYear() + 1, now.getMonth(), now.getDate());
+        const twoYearsAgo = new Date(now.getFullYear() - 2, now.getMonth(), now.getDate());
+        const threeMonthsFromNow = new Date(now.getFullYear(), now.getMonth() + 3, now.getDate());
         
-        // Get launches within a reasonable date range to avoid placeholder dates
-        apiUrl = `https://ll.thespacedevs.com/2.2.0/launch/?lsp__name=SpaceX&limit=100&net__gte=${oneYearAgo.toISOString()}&net__lte=${oneYearFromNow.toISOString()}&ordering=-net`;
+        // Get launches, ordering by date (soonest first)
+        apiUrl = `https://ll.thespacedevs.com/2.2.0/launch/?lsp__name=SpaceX&limit=100&net__gte=${twoYearsAgo.toISOString()}&ordering=net`;
         break;
       
       case 'upcoming':
-        // Get only confirmed upcoming SpaceX launches (not far-future TBD)
+        // Get only upcoming SpaceX launches within next 3 months
         const today = new Date();
-        const sixMonthsFromNow = new Date(today.getFullYear(), today.getMonth() + 6, today.getDate());
-        apiUrl = `https://ll.thespacedevs.com/2.2.0/launch/upcoming/?lsp__name=SpaceX&limit=50&net__lte=${sixMonthsFromNow.toISOString()}`;
+        const threeMonthsFuture = new Date(today.getFullYear(), today.getMonth() + 3, today.getDate());
+        apiUrl = `https://ll.thespacedevs.com/2.2.0/launch/upcoming/?lsp__name=SpaceX&limit=50&net__lte=${threeMonthsFuture.toISOString()}&ordering=net`;
         break;
         
       case 'rockets':
-        // Get SpaceX rocket configurations
         apiUrl = 'https://ll.thespacedevs.com/2.2.0/config/launcher/?lsp__name=SpaceX';
         break;
         
       case 'launchpads':
-        // Get launch pads used by SpaceX
         apiUrl = 'https://ll.thespacedevs.com/2.2.0/pad/?agency__name=SpaceX';
         break;
         
@@ -64,24 +62,57 @@ export default async function handler(req, res) {
     const data = await response.json();
     console.log(`✅ Successfully fetched ${resource}`);
     
-    // Filter out launches with TBD status or unrealistic future dates
+    // Filter and sort launches
     if (data.results && (resource === 'launches' || resource === 'upcoming')) {
-      const filteredResults = data.results.filter(launch => {
+      const now = new Date();
+      const sixMonthsFromNow = new Date();
+      sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
+      
+      let filteredResults = data.results.filter(launch => {
         const launchDate = new Date(launch.net);
-        const yearFromNow = new Date();
-        yearFromNow.setFullYear(yearFromNow.getFullYear() + 1);
         
-        // Filter out:
-        // 1. Launches more than 1 year in the future (likely TBD placeholders)
-        // 2. Launches with status "To Be Determined" and dates far in the future
-        const isTooFarFuture = launchDate > yearFromNow;
+        // Filter out launches that are:
+        // 1. More than 6 months in the future (likely placeholders)
+        // 2. Have "To Be Determined" status with dates in 2026 or later
+        const isTooFarFuture = launchDate > sixMonthsFromNow;
+        const isYear2026OrLater = launchDate.getFullYear() >= 2026;
         const isTBD = launch.status?.id === 2 && launch.status?.name === "To Be Determined";
         
-        // Keep launch if it's not too far in future OR if it's TBD but within reasonable timeframe
-        return !isTooFarFuture || (isTBD && !isTooFarFuture);
+        // Exclude if it's TBD and 2026+, or just too far in the future
+        if ((isTBD && isYear2026OrLater) || isTooFarFuture) {
+          console.log(`Filtering out: ${launch.name} - Date: ${launch.net}`);
+          return false;
+        }
+        
+        return true;
       });
       
-      console.log(`📊 Filtered ${data.results.length} launches to ${filteredResults.length} (removed far-future TBD placeholders)`);
+      // Sort by date - soonest first for upcoming, most recent first for past
+      filteredResults.sort((a, b) => {
+        const dateA = new Date(a.net);
+        const dateB = new Date(b.net);
+        const now = new Date();
+        
+        // Separate upcoming and past launches
+        const aIsUpcoming = dateA > now;
+        const bIsUpcoming = dateB > now;
+        
+        // If one is upcoming and one is past, upcoming goes first
+        if (aIsUpcoming && !bIsUpcoming) return -1;
+        if (!aIsUpcoming && bIsUpcoming) return 1;
+        
+        // If both upcoming, soonest first
+        if (aIsUpcoming && bIsUpcoming) {
+          return dateA - dateB;
+        }
+        
+        // If both past, most recent first
+        return dateB - dateA;
+      });
+      
+      console.log(`📊 Filtered ${data.results.length} launches to ${filteredResults.length} (removed far-future/TBD placeholders)`);
+      console.log(`📅 Date range: ${filteredResults.length > 0 ? filteredResults[0].net + ' to ' + filteredResults[filteredResults.length - 1].net : 'No launches'}`);
+      
       res.status(200).json(filteredResults);
     } else if (data.results) {
       res.status(200).json(data.results);

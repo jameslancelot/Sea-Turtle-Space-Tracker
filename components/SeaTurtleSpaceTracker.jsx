@@ -20,49 +20,26 @@ const SeaTurtleSpaceTracker = () => {
 
   // Fetch SpaceX data with detailed logging
   useEffect(() => {
-    const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
-    
-    const fetchWithProxy = async (url, resourceName) => {
-      console.log(`🚀 Attempting to fetch ${resourceName} from: ${url}`);
+    // Helper function to fetch from our Vercel API route
+    const fetchFromAPI = async (resource) => {
+      console.log(`🚀 Fetching ${resource} from our API route...`);
       
       try {
-        // First try direct fetch
-        console.log(`  📡 Trying direct fetch for ${resourceName}...`);
-        const directResponse = await fetch(url);
-        console.log(`  📊 Direct fetch response status for ${resourceName}: ${directResponse.status}`);
+        const response = await fetch(`/api/spacex?resource=${resource}`);
+        console.log(`  📊 API response status for ${resource}: ${response.status}`);
         
-        if (directResponse.ok) {
-          const data = await directResponse.json();
-          console.log(`  ✅ Direct fetch successful for ${resourceName}! Got ${Array.isArray(data) ? data.length : 'data'} items`);
-          return data;
-        } else {
-          console.log(`  ⚠️ Direct fetch failed for ${resourceName} with status: ${directResponse.status}`);
-        }
-      } catch (e) {
-        console.log(`  ❌ Direct fetch error for ${resourceName}:`, e.message);
-        console.log(`  🔄 Falling back to CORS proxy for ${resourceName}...`);
-      }
-      
-      // If direct fails, use proxy
-      const proxyUrl = CORS_PROXY + encodeURIComponent(url);
-      console.log(`  🌐 Using proxy URL for ${resourceName}: ${proxyUrl.substring(0, 100)}...`);
-      
-      try {
-        const proxyResponse = await fetch(proxyUrl);
-        console.log(`  📊 Proxy response status for ${resourceName}: ${proxyResponse.status}`);
-        
-        if (!proxyResponse.ok) {
-          const errorText = await proxyResponse.text();
-          console.error(`  ❌ Proxy failed for ${resourceName}:`, errorText.substring(0, 200));
-          throw new Error(`Proxy HTTP error! status: ${proxyResponse.status}`);
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error(`  ❌ API error for ${resource}:`, errorData);
+          throw new Error(errorData.message || `API returned status ${response.status}`);
         }
         
-        const data = await proxyResponse.json();
-        console.log(`  ✅ Proxy fetch successful for ${resourceName}! Got ${Array.isArray(data) ? data.length : 'data'} items`);
+        const data = await response.json();
+        console.log(`  ✅ Successfully fetched ${Array.isArray(data) ? data.length : 'data'} ${resource}`);
         return data;
-      } catch (proxyError) {
-        console.error(`  ❌ Proxy fetch failed for ${resourceName}:`, proxyError);
-        throw proxyError;
+      } catch (error) {
+        console.error(`  ❌ Failed to fetch ${resource}:`, error.message);
+        throw error;
       }
     };
     
@@ -75,11 +52,11 @@ const SeaTurtleSpaceTracker = () => {
         setLoading(true);
         setError(null);
         
-        console.log('📦 Fetching all SpaceX data...');
+        console.log('📦 Fetching all SpaceX data via our API route...');
         const [launchesData, rocketsData, launchPadsData] = await Promise.all([
-          fetchWithProxy('https://api.spacexdata.com/v5/launches', 'Launches'),
-          fetchWithProxy('https://api.spacexdata.com/v5/rockets', 'Rockets'),
-          fetchWithProxy('https://api.spacexdata.com/v5/launchpads', 'Launchpads')
+          fetchFromAPI('launches'),
+          fetchFromAPI('rockets'),
+          fetchFromAPI('launchpads')
         ]).catch(err => {
           console.error('❌ Promise.all failed:', err);
           throw err;
@@ -124,7 +101,7 @@ const SeaTurtleSpaceTracker = () => {
         console.log('🔄 Loading sample data for demonstration...');
         loadSampleData();
         
-        setError('Unable to connect to SpaceX API. Loading sample data for demonstration.');
+        setError('Unable to fetch live data. Showing sample launches for demonstration.');
         setLoading(false);
       }
     };

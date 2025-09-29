@@ -98,7 +98,9 @@ const SeaTurtleSpaceTrackerBranded = () => {
   }, [launches]);
 
   const isUpcoming = (launch) => {
-    return launch.status?.id === 1 || launch.status?.id === 2 || new Date(launch.net) > new Date();
+    // Status ID 1 = "Go for Launch", or future date
+    // Note: Status ID 2 (TBD) is now filtered out by the API
+    return launch.status?.id === 1 || new Date(launch.net) > new Date();
   };
 
   const formatDate = (netDate) => {

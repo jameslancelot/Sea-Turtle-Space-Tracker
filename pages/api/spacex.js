@@ -1,7 +1,7 @@
 /**
- * Vercel Serverless API Route
+ * FIXED Vercel Serverless API Route
  * Fetches space launch data from Launch Library 2 API
- * Filters out unrealistic placeholder dates and sorts properly
+ * Uses separate endpoints for upcoming/past to avoid placeholder TBD dates
  */
 
 export default async function handler(req, res) {
@@ -19,13 +19,59 @@ export default async function handler(req, res) {
     // Map our resources to Launch Library 2 endpoints
     switch (resource) {
       case 'launches':
-        // Get all SpaceX launches and filter/sort them ourselves
-        // Order by date to get a good mix of past and upcoming
-        apiUrl = 'https://ll.thespacedevs.com/2.2.0/launch/?lsp__name=SpaceX&limit=100&ordering=-net';
-        break;
+        // FIXED: Fetch upcoming and past launches separately to avoid placeholder dates
+        const upcomingUrl = 'https://ll.thespacedevs.com/2.2.0/launch/upcoming/?lsp__name=SpaceX&limit=50';
+        const pastUrl = 'https://ll.thespacedevs.com/2.2.0/launch/previous/?lsp__name=SpaceX&limit=50';
+        
+        try {
+          console.log(`📍 Fetching upcoming from: ${upcomingUrl}`);
+          console.log(`📍 Fetching past from: ${pastUrl}`);
+          
+          const [upcomingRes, pastRes] = await Promise.all([
+            fetch(upcomingUrl),
+            fetch(pastUrl)
+          ]);
+          
+          if (!upcomingRes.ok || !pastRes.ok) {
+            throw new Error(`API returned error status`);
+          }
+          
+          const upcomingData = await upcomingRes.json();
+          const pastData = await pastRes.json();
+          
+          // Combine results
+          const combinedResults = [
+            ...(upcomingData.results || []),
+            ...(pastData.results || [])
+          ];
+          
+          console.log(`✅ Combined ${upcomingData.results?.length || 0} upcoming + ${pastData.results?.length || 0} past = ${combinedResults.length} total launches`);
+          
+          // Filter out TBD placeholder dates
+          const filteredResults = combinedResults.filter(launch => {
+            // Status ID 2 = "To Be Determined" - these have placeholder dates
+            if (launch.status?.id === 2) {
+              console.log(`Filtering out TBD launch: ${launch.name}`);
+              return false;
+            }
+            return true;
+          });
+          
+          console.log(`📊 Filtered to ${filteredResults.length} launches with real dates`);
+          
+          if (filteredResults.length > 0) {
+            const dates = filteredResults.map(l => new Date(l.net));
+            console.log(`📅 Date range: ${Math.min(...dates).toISOString()} to ${Math.max(...dates).toISOString()}`);
+          }
+          
+          return res.status(200).json(filteredResults);
+        } catch (err) {
+          console.error(`❌ Error fetching combined launches:`, err);
+          throw err;
+        }
       
       case 'upcoming':
-        // Get upcoming SpaceX launches
+        // Get upcoming SpaceX launches with confirmed dates
         apiUrl = 'https://ll.thespacedevs.com/2.2.0/launch/upcoming/?lsp__name=SpaceX&limit=50';
         break;
         
@@ -55,54 +101,25 @@ export default async function handler(req, res) {
     const data = await response.json();
     console.log(`✅ Successfully fetched ${resource}`);
     
-    // Filter and sort launches
-    if (data.results && (resource === 'launches' || resource === 'upcoming')) {
-      const now = new Date();
-      const maxReasonableDate = new Date('2030-01-01'); // Only filter out really far future dates
-      
-      let filteredResults = data.results.filter(launch => {
-        const launchDate = new Date(launch.net);
-        
-        // Only filter out obviously placeholder dates (2030+)
-        // We'll do more filtering on the frontend
-        if (launchDate > maxReasonableDate) {
-          console.log(`Filtering out placeholder launch: ${launch.name} - Date: ${launch.net}`);
+    // Process other resources (not 'launches')
+    if (data.results && resource === 'upcoming') {
+      // Filter out TBD status for upcoming too
+      const filteredResults = data.results.filter(launch => {
+        if (launch.status?.id === 2) {
+          console.log(`Filtering out TBD launch: ${launch.name}`);
           return false;
         }
-        
         return true;
       });
       
-      // Sort by date
+      // Sort upcoming by date (soonest first)
       filteredResults.sort((a, b) => {
         const dateA = new Date(a.net);
         const dateB = new Date(b.net);
-        const now = new Date();
-        
-        // Separate upcoming and past launches
-        const aIsUpcoming = dateA > now;
-        const bIsUpcoming = dateB > now;
-        
-        // If one is upcoming and one is past, upcoming goes first
-        if (aIsUpcoming && !bIsUpcoming) return -1;
-        if (!aIsUpcoming && bIsUpcoming) return 1;
-        
-        // If both upcoming, soonest first
-        if (aIsUpcoming && bIsUpcoming) {
-          return dateA - dateB;
-        }
-        
-        // If both past, most recent first
-        return dateB - dateA;
+        return dateA - dateB;
       });
       
-      console.log(`📊 Filtered ${data.results.length} launches to ${filteredResults.length}`);
-      if (filteredResults.length > 0) {
-        const firstDate = new Date(filteredResults[0].net);
-        const lastDate = new Date(filteredResults[filteredResults.length - 1].net);
-        console.log(`📅 Date range: ${firstDate.toISOString()} to ${lastDate.toISOString()}`);
-      }
-      
+      console.log(`📊 Filtered ${data.results.length} upcoming launches to ${filteredResults.length} with real dates`);
       res.status(200).json(filteredResults);
     } else if (data.results) {
       res.status(200).json(data.results);

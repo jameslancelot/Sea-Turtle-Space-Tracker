@@ -177,7 +177,7 @@ const SeaTurtleSpaceTrackerBranded = () => {
           <div className="flex items-center justify-center mb-4">
             {/* Space Turtle Loading Animation */}
             <img 
-              src="/images/space-turtle-logo.png" 
+              src="/images/NEW-LOGO.png" 
               alt="Loading..." 
               className="w-24 h-24 object-contain"
               style={{ animation: 'spin-slow 2s linear infinite' }}
@@ -234,17 +234,14 @@ const SeaTurtleSpaceTrackerBranded = () => {
               {/* Space Turtle Astronaut Logo with Float Animation */}
               <div className="relative">
                 <img 
-                  src="/images/space-turtle-logo.png" 
+                  src="/images/NEW-LOGO.png" 
                   alt="PVPV Space Turtle Astronaut" 
                   className="w-20 h-20 object-contain drop-shadow-lg hover:scale-110 transition-transform cursor-pointer"
                   style={floatingStyle}
                   onError={(e) => {
-                    // Fallback to original logo or shell icon
-                    e.target.src = '/images/NEW-LOGO.png';
-                    e.target.onerror = () => {
-                      e.target.style.display = 'none';
-                      e.target.nextSibling.style.display = 'block';
-                    };
+                    // Fallback to shell icon if NEW-LOGO fails
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'block';
                   }}
                 />
                 <div className="hidden" style={{display: 'none'}}>
@@ -429,7 +426,7 @@ const SeaTurtleSpaceTrackerBranded = () => {
                     </div>
                     {/* Mini Space Turtle decoration */}
                     <img 
-                      src="/images/space-turtle-logo.png" 
+                      src="/images/NEW-LOGO.png" 
                       alt="" 
                       className="absolute bottom-2 left-2 w-10 h-10 opacity-70"
                       onError={(e) => {
@@ -512,7 +509,7 @@ const SeaTurtleSpaceTrackerBranded = () => {
           <div className="text-center py-12">
             {/* Show Space Turtle when no launches */}
             <img 
-              src="/images/space-turtle-logo.png" 
+              src="/images/NEW-LOGO.png" 
               alt="Space Turtle" 
               className="w-32 h-32 mx-auto mb-4 opacity-70"
               style={floatingStyle}

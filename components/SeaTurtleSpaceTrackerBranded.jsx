@@ -15,6 +15,7 @@ const SeaTurtleSpaceTrackerBranded = () => {
   const [view, setView] = useState('upcoming');
   const [countdown, setCountdown] = useState({});
   const [showHeroBanner, setShowHeroBanner] = useState(true);
+  const [yearFilter, setYearFilter] = useState('2025'); // Default to 2025 for upcoming launches
 
   // Add floating animation style
   const floatingStyle = {
@@ -125,7 +126,28 @@ const SeaTurtleSpaceTrackerBranded = () => {
   };
 
   const filteredLaunches = launches
-    .filter(launch => view === 'upcoming' ? isUpcoming(launch) : !isUpcoming(launch))
+    .filter(launch => {
+      const launchDate = new Date(launch.net);
+      const launchYear = launchDate.getFullYear();
+      
+      // First filter by upcoming/past
+      const isUpcomingLaunch = isUpcoming(launch);
+      if (view === 'upcoming' && !isUpcomingLaunch) return false;
+      if (view === 'past' && isUpcomingLaunch) return false;
+      
+      // Apply year filter
+      if (yearFilter === 'all') {
+        return true;
+      } else if (yearFilter === '2025') {
+        return launchYear === 2025;
+      } else if (yearFilter === '2026') {
+        return launchYear === 2026;
+      } else if (yearFilter === '2027+') {
+        return launchYear >= 2027;
+      }
+      
+      return true;
+    })
     .sort((a, b) => {
       const dateA = new Date(a.net);
       const dateB = new Date(b.net);
@@ -281,10 +303,15 @@ const SeaTurtleSpaceTrackerBranded = () => {
       {/* Main Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 py-6">
         {/* View Toggle - Surfboard Style! */}
-        <div className="flex justify-center mb-6">
+        <div className="flex flex-col items-center gap-4 mb-6">
+          {/* Upcoming/Past Toggle */}
           <div className="bg-white/20 backdrop-blur-md rounded-full p-1.5 inline-flex shadow-xl border-2 border-[#6BA539]">
             <button
-              onClick={() => setView('upcoming')}
+              onClick={() => {
+                setView('upcoming');
+                // Default to 2025 when switching to upcoming
+                if (view === 'past') setYearFilter('2025');
+              }}
               className={`px-6 py-3 rounded-full transition-all font-bold text-sm ${
                 view === 'upcoming' 
                   ? 'bg-gradient-to-r from-[#F7941D] to-[#FDB913] text-[#003366] shadow-lg transform scale-105' 
@@ -294,7 +321,11 @@ const SeaTurtleSpaceTrackerBranded = () => {
               🚀 Upcoming Missions
             </button>
             <button
-              onClick={() => setView('past')}
+              onClick={() => {
+                setView('past');
+                // Show all years for past launches by default
+                if (view === 'upcoming') setYearFilter('all');
+              }}
               className={`px-6 py-3 rounded-full transition-all font-bold text-sm ${
                 view === 'past' 
                   ? 'bg-gradient-to-r from-[#F7941D] to-[#FDB913] text-[#003366] shadow-lg transform scale-105' 
@@ -304,7 +335,41 @@ const SeaTurtleSpaceTrackerBranded = () => {
               ✅ Past Launches
             </button>
           </div>
+          
+          {/* Year Filter */}
+          <div className="flex items-center gap-3 bg-white/20 backdrop-blur-md rounded-full px-4 py-2 shadow-xl border border-[#6BA539]/40">
+            <span className="text-white font-bold text-sm">📅 Filter Year:</span>
+            <select
+              value={yearFilter}
+              onChange={(e) => setYearFilter(e.target.value)}
+              className="bg-[#2B8C74]/60 text-white font-bold text-sm px-4 py-2 rounded-full border border-[#FDB913]/40 hover:bg-[#2B8C74]/80 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#FDB913]"
+            >
+              <option value="2025">2025</option>
+              <option value="2026">2026</option>
+              <option value="2027+">2027+</option>
+              <option value="all">All Years</option>
+            </select>
+            {yearFilter !== 'all' && (
+              <button
+                onClick={() => setYearFilter('all')}
+                className="text-[#FDB913] hover:text-white transition-colors ml-1"
+                title="Clear filter"
+              >
+                ✕
+              </button>
+            )}
+          </div>
         </div>
+        
+        {/* Results Count */}
+        {filteredLaunches.length > 0 && (
+          <div className="text-center mb-4">
+            <p className="text-[#FDB913] font-bold text-sm">
+              Showing {filteredLaunches.length} {view} {filteredLaunches.length === 1 ? 'launch' : 'launches'}
+              {yearFilter !== 'all' && ` for ${yearFilter === '2027+' ? '2027 and beyond' : yearFilter}`}
+            </p>
+          </div>
+        )}
 
         {/* Stats Bar - Ocean Themed! */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -455,8 +520,14 @@ const SeaTurtleSpaceTrackerBranded = () => {
               }}
             />
             <Shell className="w-16 h-16 text-[#6BA539] mx-auto mb-4 opacity-50 hidden" style={{display: 'none'}} />
-            <p className="text-white text-lg font-semibold">No {view} launches available at this time.</p>
-            <p className="text-[#FDB913] text-sm mt-2">Our Space Turtle is searching the cosmos for more missions! 🐢🔭</p>
+            <p className="text-white text-lg font-semibold">
+              No {view} launches found {yearFilter !== 'all' ? `for ${yearFilter === '2027+' ? '2027 and beyond' : yearFilter}` : ''}.
+            </p>
+            <p className="text-[#FDB913] text-sm mt-2">
+              {yearFilter !== 'all' 
+                ? 'Try selecting a different year filter or "All Years" to see more launches! 🐢🔭' 
+                : 'Our Space Turtle is searching the cosmos for more missions! 🐢🔭'}
+            </p>
           </div>
         )}
 

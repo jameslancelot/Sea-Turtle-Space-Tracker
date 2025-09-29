@@ -58,22 +58,15 @@ export default async function handler(req, res) {
     // Filter and sort launches
     if (data.results && (resource === 'launches' || resource === 'upcoming')) {
       const now = new Date();
-      const twoYearsFromNow = new Date();
-      twoYearsFromNow.setFullYear(twoYearsFromNow.getFullYear() + 2);
+      const maxReasonableDate = new Date('2030-01-01'); // Only filter out really far future dates
       
       let filteredResults = data.results.filter(launch => {
         const launchDate = new Date(launch.net);
         
-        // Filter out launches that are:
-        // 1. More than 2 years in the future (likely placeholders)
-        // 2. Have dates in 2027 or later with "TBD" status
-        const isTooFarFuture = launchDate > twoYearsFromNow;
-        const isYear2027OrLater = launchDate.getFullYear() >= 2027;
-        const isTBD = launch.status?.id === 2 && launch.status?.name === "To Be Determined";
-        
-        // Exclude if it's TBD and 2027+, or just way too far in the future
-        if ((isTBD && isYear2027OrLater) || isTooFarFuture) {
-          console.log(`Filtering out far-future launch: ${launch.name} - Date: ${launch.net}`);
+        // Only filter out obviously placeholder dates (2030+)
+        // We'll do more filtering on the frontend
+        if (launchDate > maxReasonableDate) {
+          console.log(`Filtering out placeholder launch: ${launch.name} - Date: ${launch.net}`);
           return false;
         }
         

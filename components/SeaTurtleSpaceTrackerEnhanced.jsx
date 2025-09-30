@@ -717,7 +717,7 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
             {/* Card View */}
             {displayMode === 'cards' && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 no-print">
-                {filteredLaunches.slice(0, 40).map(launch => (
+                {filteredLaunches.map(launch => (
                   <div
                     key={launch.id}
                     className="bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden hover:bg-white/20 transition-all border border-white/20 hover:border-yellow-400/50 group"
@@ -806,7 +806,7 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-teal-700/30">
-                      {filteredLaunches.slice(0, 50).map(launch => (
+                      {filteredLaunches.map(launch => (
                         <tr key={launch.id} className="hover:bg-white/5 transition-colors">
                           <td className="p-3 text-white font-medium">{launch.name}</td>
                           <td className="p-3 text-cyan-300">{formatDate(launch.net)}</td>
@@ -837,7 +837,7 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
             {/* Compact List View */}
             {displayMode === 'compact' && (
               <div className="space-y-2 no-print">
-                {filteredLaunches.slice(0, 50).map(launch => (
+                {filteredLaunches.map(launch => (
                   <div
                     key={launch.id}
                     className="flex items-center justify-between p-3 bg-white/10 hover:bg-white/15 backdrop-blur-sm rounded-lg transition-colors border border-white/10 hover:border-yellow-400/30"

@@ -36,6 +36,7 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
   const [rocketFilter, setRocketFilter] = useState('all');
   const [missionTypeFilter, setMissionTypeFilter] = useState('all');
   const [programFilter, setProgramFilter] = useState('all');
+  const [providerFilter, setProviderFilter] = useState('all'); // New: filter by launch provider
   const [searchQuery, setSearchQuery] = useState('');
   const [siteFilter, setSiteFilter] = useState(null); // New: filter by launch site
 
@@ -193,6 +194,7 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
   const filterOptions = useMemo(() => {
     const rockets = [...new Set(launches.map(l => l.rocket?.configuration?.name).filter(Boolean))].sort();
     const programs = [...new Set(launches.map(l => l.program?.[0]?.name).filter(Boolean))].sort();
+    const providers = [...new Set(launches.map(l => l.launch_service_provider?.name).filter(Boolean))].sort();
 
     const missionTypes = [...new Set(launches.map(l => {
       const mission = l.mission;
@@ -213,7 +215,7 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
       return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
     }))].sort();
 
-    return { rockets, programs, missionTypes, years, months };
+    return { rockets, programs, providers, missionTypes, years, months };
   }, [launches]);
 
   // Filter launches
@@ -239,6 +241,9 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
 
       // Program filter
       if (programFilter !== 'all' && launch.program?.[0]?.name !== programFilter) return false;
+
+      // Provider filter
+      if (providerFilter !== 'all' && launch.launch_service_provider?.name !== providerFilter) return false;
 
       // Mission type filter
       if (missionTypeFilter !== 'all') {
@@ -271,7 +276,7 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
       const dateB = new Date(b.net);
       return view === 'upcoming' ? dateA - dateB : dateB - dateA;
     });
-  }, [launches, view, yearFilter, monthFilter, rocketFilter, programFilter, missionTypeFilter, searchQuery, siteFilter]);
+  }, [launches, view, yearFilter, monthFilter, rocketFilter, programFilter, providerFilter, missionTypeFilter, searchQuery, siteFilter]);
 
   // Stats calculation
   const stats = useMemo(() => ({
@@ -287,6 +292,7 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
     setMonthFilter('all');
     setRocketFilter('all');
     setProgramFilter('all');
+    setProviderFilter('all');
     setMissionTypeFilter('all');
     setSearchQuery('');
   };
@@ -296,6 +302,7 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
     monthFilter !== 'all',
     rocketFilter !== 'all',
     programFilter !== 'all',
+    providerFilter !== 'all',
     missionTypeFilter !== 'all',
     searchQuery !== ''
   ].filter(Boolean).length;
@@ -560,6 +567,18 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
               <option value="all">All Rockets</option>
               {filterOptions.rockets.map(rocket => (
                 <option key={rocket} value={rocket}>{rocket}</option>
+              ))}
+            </select>
+
+            {/* Provider Filter */}
+            <select
+              value={providerFilter}
+              onChange={(e) => setProviderFilter(e.target.value)}
+              className="bg-teal-900/50 text-white text-sm px-3 py-2 rounded border border-teal-600 hover:border-yellow-400/50 focus:outline-none focus:border-yellow-400 transition-colors"
+            >
+              <option value="all">All Providers</option>
+              {filterOptions.providers.map(provider => (
+                <option key={provider} value={provider}>{provider}</option>
               ))}
             </select>
 

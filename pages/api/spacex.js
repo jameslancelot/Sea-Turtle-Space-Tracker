@@ -19,54 +19,62 @@ export default async function handler(req, res) {
     // Map our resources to Launch Library 2 endpoints
     switch (resource) {
       case 'launches':
-        // FIXED: Fetch upcoming and past launches separately to avoid placeholder dates
-        const upcomingUrl = 'https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=100';
-        const pastUrl = 'https://ll.thespacedevs.com/2.2.0/launch/previous/?limit=100';
-        
+        // Fetch upcoming and recent past launches separately
+        const upcomingUrl = 'https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=30';
+        const pastUrl = 'https://ll.thespacedevs.com/2.2.0/launch/previous/?limit=20';
+
         try {
           console.log(`📍 Fetching upcoming from: ${upcomingUrl}`);
           console.log(`📍 Fetching past from: ${pastUrl}`);
-          
+
+          // Fetch with timeout protection
+          const fetchWithTimeout = (url, timeout = 20000) => {
+            return Promise.race([
+              fetch(url),
+              new Promise((_, reject) =>
+                setTimeout(() => reject(new Error(`Request timeout after ${timeout}ms`)), timeout)
+              )
+            ]);
+          };
+
           const [upcomingRes, pastRes] = await Promise.all([
-            fetch(upcomingUrl),
-            fetch(pastUrl)
+            fetchWithTimeout(upcomingUrl),
+            fetchWithTimeout(pastUrl)
           ]);
-          
-          if (!upcomingRes.ok || !pastRes.ok) {
-            throw new Error(`API returned error status`);
+
+          if (!upcomingRes.ok) {
+            throw new Error(`Upcoming API error: ${upcomingRes.status}`);
           }
-          
+          if (!pastRes.ok) {
+            throw new Error(`Past API error: ${pastRes.status}`);
+          }
+
           const upcomingData = await upcomingRes.json();
           const pastData = await pastRes.json();
-          
+
           // Combine results
           const combinedResults = [
             ...(upcomingData.results || []),
             ...(pastData.results || [])
           ];
-          
+
           console.log(`✅ Combined ${upcomingData.results?.length || 0} upcoming + ${pastData.results?.length || 0} past = ${combinedResults.length} total launches`);
-          
+
           // Filter out TBD placeholder dates
           const filteredResults = combinedResults.filter(launch => {
             // Status ID 2 = "To Be Determined" - these have placeholder dates
             if (launch.status?.id === 2) {
-              console.log(`Filtering out TBD launch: ${launch.name}`);
+              console.log(`🔍 Filtering out TBD launch: ${launch.name}`);
               return false;
             }
             return true;
           });
-          
-          console.log(`📊 Filtered to ${filteredResults.length} launches with real dates`);
-          
-          if (filteredResults.length > 0) {
-            const dates = filteredResults.map(l => new Date(l.net));
-            console.log(`📅 Date range: ${new Date(Math.min(...dates)).toISOString()} to ${new Date(Math.max(...dates)).toISOString()}`);
-          }
-          
+
+          console.log(`📊 Filtered to ${filteredResults.length} launches with confirmed dates`);
+
           return res.status(200).json(filteredResults);
         } catch (err) {
-          console.error(`❌ Error fetching combined launches:`, err);
+          console.error(`❌ Error fetching launches:`, err.message);
           throw err;
         }
       

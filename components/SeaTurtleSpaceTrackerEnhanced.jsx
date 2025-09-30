@@ -21,6 +21,7 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
   // Filter states
   const [view, setView] = useState('upcoming');
   const [yearFilter, setYearFilter] = useState('all');
+  const [monthFilter, setMonthFilter] = useState('all');
   const [rocketFilter, setRocketFilter] = useState('all');
   const [missionTypeFilter, setMissionTypeFilter] = useState('all');
   const [programFilter, setProgramFilter] = useState('all');
@@ -112,6 +113,30 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
     });
   };
 
+  const formatLocation = (launch) => {
+    if (!launch.pad) return 'Unknown';
+
+    // Get pad name and location
+    const padName = launch.pad.name || '';
+    const locationName = launch.pad.location?.name || '';
+
+    // Extract state/region from location name (e.g., "Cape Canaveral SFS, FL, USA" -> "FL")
+    // or "Wallops Flight Facility, Virginia, USA" -> "Virginia"
+    let stateInfo = '';
+    if (locationName) {
+      const parts = locationName.split(',').map(p => p.trim());
+      if (parts.length >= 2) {
+        stateInfo = parts[1]; // Get the state/region part
+      }
+    }
+
+    // Return pad name with state
+    if (stateInfo) {
+      return `${padName}, ${stateInfo}`;
+    }
+    return padName || 'Unknown';
+  };
+
   // Extract unique filter values
   const filterOptions = useMemo(() => {
     const rockets = [...new Set(launches.map(l => l.rocket?.configuration?.name).filter(Boolean))].sort();
@@ -130,7 +155,13 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
 
     const years = [...new Set(launches.map(l => new Date(l.net).getFullYear()))].sort();
 
-    return { rockets, programs, missionTypes, years };
+    // Extract unique year-month combinations for month filter
+    const months = [...new Set(launches.map(l => {
+      const date = new Date(l.net);
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    }))].sort();
+
+    return { rockets, programs, missionTypes, years, months };
   }, [launches]);
 
   // Filter launches
@@ -138,6 +169,7 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
     return launches.filter(launch => {
       const launchDate = new Date(launch.net);
       const launchYear = launchDate.getFullYear();
+      const launchMonth = `${launchYear}-${String(launchDate.getMonth() + 1).padStart(2, '0')}`;
 
       // View filter
       const isUpcomingLaunch = isUpcoming(launch);
@@ -146,6 +178,9 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
 
       // Year filter
       if (yearFilter !== 'all' && launchYear !== parseInt(yearFilter)) return false;
+
+      // Month filter
+      if (monthFilter !== 'all' && launchMonth !== monthFilter) return false;
 
       // Rocket filter
       if (rocketFilter !== 'all' && launch.rocket?.configuration?.name !== rocketFilter) return false;
@@ -178,7 +213,7 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
       const dateB = new Date(b.net);
       return view === 'upcoming' ? dateA - dateB : dateB - dateA;
     });
-  }, [launches, view, yearFilter, rocketFilter, programFilter, missionTypeFilter, searchQuery]);
+  }, [launches, view, yearFilter, monthFilter, rocketFilter, programFilter, missionTypeFilter, searchQuery]);
 
   // Stats calculation
   const stats = useMemo(() => ({
@@ -191,6 +226,7 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
 
   const clearAllFilters = () => {
     setYearFilter('all');
+    setMonthFilter('all');
     setRocketFilter('all');
     setProgramFilter('all');
     setMissionTypeFilter('all');
@@ -199,6 +235,7 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
 
   const activeFilterCount = [
     yearFilter !== 'all',
+    monthFilter !== 'all',
     rocketFilter !== 'all',
     programFilter !== 'all',
     missionTypeFilter !== 'all',
@@ -211,7 +248,7 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
       launch.name,
       formatDate(launch.net),
       launch.rocket?.configuration?.name || 'Unknown',
-      launch.pad?.name || 'Unknown',
+      formatLocation(launch),
       launch.status?.name || 'Unknown'
     ]);
 
@@ -406,6 +443,22 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
               ))}
             </select>
 
+            {/* Month Filter */}
+            <select
+              value={monthFilter}
+              onChange={(e) => setMonthFilter(e.target.value)}
+              className="bg-teal-900/50 text-white text-sm px-3 py-2 rounded border border-teal-600 hover:border-yellow-400/50 focus:outline-none focus:border-yellow-400 transition-colors"
+            >
+              <option value="all">All Months</option>
+              {filterOptions.months.map(month => {
+                const [year, monthNum] = month.split('-');
+                const monthName = new Date(year, parseInt(monthNum) - 1, 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                return (
+                  <option key={month} value={month}>{monthName}</option>
+                );
+              })}
+            </select>
+
             {/* Rocket Filter */}
             <select
               value={rocketFilter}
@@ -523,8 +576,8 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
 
                         {launch.pad && (
                           <div className="flex items-center text-green-300/90">
-                            <MapPin className="w-3 h-3 mr-1.5" />
-                            <span className="truncate">{launch.pad.name}</span>
+                            <MapPin className="w-3 h-3 mr-1.5 flex-shrink-0" />
+                            <span className="truncate">{formatLocation(launch)}</span>
                           </div>
                         )}
 
@@ -577,7 +630,7 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
                           <td className="p-3 text-white font-medium">{launch.name}</td>
                           <td className="p-3 text-cyan-300">{formatDate(launch.net)}</td>
                           <td className="p-3 text-yellow-300">{launch.rocket?.configuration?.name || 'Unknown'}</td>
-                          <td className="p-3 text-green-300 max-w-xs truncate">{launch.pad?.name || 'Unknown'}</td>
+                          <td className="p-3 text-green-300 max-w-xs truncate">{formatLocation(launch)}</td>
                           <td className="p-3">
                             <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${
                               isUpcoming(launch) ? 'bg-yellow-500/30 text-yellow-300' :
@@ -622,6 +675,10 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
                         <div className="text-white text-sm font-medium">{launch.name}</div>
                         <div className="text-cyan-300 text-xs mt-0.5">
                           {launch.rocket?.configuration?.name} • {formatDateCompact(launch.net)}
+                        </div>
+                        <div className="text-green-300 text-xs mt-0.5 flex items-center">
+                          <MapPin className="w-3 h-3 mr-1" />
+                          {formatLocation(launch)}
                         </div>
                       </div>
                     </div>

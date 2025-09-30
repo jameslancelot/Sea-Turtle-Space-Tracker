@@ -44,7 +44,6 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
   const [displayMode, setDisplayMode] = useState('cards');
   const [showStats, setShowStats] = useState(true);
   const [showEducationalSection, setShowEducationalSection] = useState(false);
-  const [searchExpanded, setSearchExpanded] = useState(false);
 
   // Fetch launch data with caching
   useEffect(() => {
@@ -263,12 +262,29 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
         if (!siteName.includes(siteFilter)) return false;
       }
 
-      // Search filter
+      // Enhanced Search filter - searches across all relevant fields
       if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        return launch.name?.toLowerCase().includes(query) ||
-               launch.rocket?.configuration?.name?.toLowerCase().includes(query) ||
-               launch.pad?.name?.toLowerCase().includes(query);
+        const query = searchQuery.toLowerCase().trim();
+
+        // Build searchable text from all relevant fields
+        const searchableFields = [
+          launch.name,
+          launch.rocket?.configuration?.name,
+          launch.rocket?.configuration?.family,
+          launch.launch_service_provider?.name,
+          launch.launch_service_provider?.abbrev,
+          launch.pad?.name,
+          launch.pad?.location?.name,
+          launch.pad?.location?.country_code,
+          launch.mission?.name,
+          launch.mission?.description,
+          launch.mission?.type,
+          launch.status?.name,
+          launch.status?.abbrev
+        ].filter(Boolean).map(field => field.toLowerCase()).join(' ');
+
+        // Check if query matches any field
+        if (!searchableFields.includes(query)) return false;
       }
 
       return true;
@@ -604,41 +620,6 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
 
             <div className="flex-1"></div>
 
-            {/* Expandable Search */}
-            {searchExpanded ? (
-              <div className="flex items-center gap-2">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60" />
-                  <input
-                    type="text"
-                    placeholder="Search launches..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    autoFocus
-                    className="w-64 bg-teal-900/50 text-white text-sm pl-10 pr-3 py-2 rounded border border-teal-600 hover:border-yellow-400/50 focus:outline-none focus:border-yellow-400 placeholder-white/40 transition-colors"
-                  />
-                </div>
-                <button
-                  onClick={() => {
-                    setSearchExpanded(false);
-                    setSearchQuery('');
-                  }}
-                  className="p-2 text-white/60 hover:text-white hover:bg-teal-900/50 rounded transition-colors"
-                  title="Close search"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => setSearchExpanded(true)}
-                className="p-2 text-white/60 hover:text-yellow-400 hover:bg-teal-900/50 rounded transition-colors"
-                title="Search launches"
-              >
-                <Search className="w-5 h-5" />
-              </button>
-            )}
-
             {/* Clear Filters */}
             {activeFilterCount > 0 && (
               <button
@@ -651,10 +632,34 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
             )}
           </div>
 
-          {/* Results count */}
-          <div className="mt-2 text-xs text-yellow-300/80">
-            Showing {filteredLaunches.length} of {launches.length} launches
-            {activeFilterCount > 0 && ` • ${activeFilterCount} filter${activeFilterCount > 1 ? 's' : ''} active`}
+          {/* Second Row: Search Bar and Results Count */}
+          <div className="flex items-center gap-4 mt-3">
+            {/* Results count */}
+            <div className="text-xs text-yellow-300/80 whitespace-nowrap">
+              Showing {filteredLaunches.length} of {launches.length} launches
+              {activeFilterCount > 0 && ` • ${activeFilterCount} filter${activeFilterCount > 1 ? 's' : ''} active`}
+            </div>
+
+            {/* Full-width Search Bar */}
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60" />
+              <input
+                type="text"
+                placeholder="Search by mission name, rocket, provider, location, or status..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-teal-900/50 text-white text-sm pl-10 pr-10 py-2 rounded border border-teal-600 hover:border-yellow-400/50 focus:outline-none focus:border-yellow-400 placeholder-white/40 transition-colors"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-white/60 hover:text-white transition-colors"
+                  title="Clear search"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>

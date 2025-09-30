@@ -3,7 +3,7 @@ import {
   Rocket, Calendar, Clock, MapPin, Globe, Filter, Search, Grid3x3, List,
   ChevronDown, X, CheckCircle, XCircle, AlertCircle, Loader, ExternalLink,
   BarChart2, Shell, TrendingUp, Eye, EyeOff, Table, Download, Waves, Star,
-  Palmtree, Fish, Anchor, Zap
+  Palmtree, Fish, Anchor, Zap, Printer
 } from 'lucide-react';
 
 /**
@@ -261,6 +261,10 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
     a.click();
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-gradient-to-br from-teal-600 via-cyan-600 to-blue-600">
@@ -284,15 +288,24 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-700 via-cyan-700 to-blue-700 relative">
+      {/* Print-only Header */}
+      <div className="print-header hidden">
+        <img src="/images/NEW-LOGO.png" alt="Sea Turtle Logo" />
+        <h1>Sea Turtle Space Tracker</h1>
+        <div className="subtitle">PVPV/Rawlings Elementary School - "Surfing to Success!"</div>
+        <div className="date">Generated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+        <div className="date">Showing {filteredLaunches.length} launches</div>
+      </div>
+
       {/* Subtle background decorations */}
-      <div className="absolute inset-0 pointer-events-none opacity-5">
+      <div className="absolute inset-0 pointer-events-none opacity-5 no-print">
         <Waves className="absolute top-10 left-10 w-32 h-32" />
         <Palmtree className="absolute bottom-10 right-10 w-40 h-40" />
         <Shell className="absolute top-1/2 right-1/4 w-20 h-20" />
       </div>
 
       {/* Compact Professional Header with Sea Turtle Theme */}
-      <header className="bg-gradient-to-r from-teal-800/90 to-blue-800/90 backdrop-blur-sm border-b-2 border-yellow-400/30 relative z-10">
+      <header className="bg-gradient-to-r from-teal-800/90 to-blue-800/90 backdrop-blur-sm border-b-2 border-yellow-400/30 relative z-10 no-print">
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -354,9 +367,16 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
               <button
                 onClick={exportToCSV}
                 className="p-2 text-yellow-300 hover:bg-teal-700/50 rounded transition-all"
-                title="Export Data"
+                title="Export to CSV"
               >
                 <Download className="w-5 h-5" />
+              </button>
+              <button
+                onClick={handlePrint}
+                className="p-2 text-yellow-300 hover:bg-teal-700/50 rounded transition-all"
+                title="Print View"
+              >
+                <Printer className="w-5 h-5" />
               </button>
             </div>
           </div>
@@ -395,7 +415,7 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
 
       {/* Error Banner */}
       {error && (
-        <div className="bg-red-500/20 border-l-4 border-red-500 p-3 mx-4 mt-4 rounded backdrop-blur-sm">
+        <div className="bg-red-500/20 border-l-4 border-red-500 p-3 mx-4 mt-4 rounded backdrop-blur-sm no-print">
           <div className="flex items-center">
             <AlertCircle className="w-5 h-5 text-red-300 mr-2" />
             <p className="text-white text-sm">{error}</p>
@@ -404,7 +424,7 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
       )}
 
       {/* Unified Filter Bar */}
-      <div className="bg-teal-800/50 backdrop-blur-sm border-b border-teal-600/30 sticky top-0 z-30">
+      <div className="bg-teal-800/50 backdrop-blur-sm border-b border-teal-600/30 sticky top-0 z-30 no-print">
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex flex-wrap items-center gap-2 md:gap-3">
             {/* Upcoming/Past Toggle */}
@@ -533,9 +553,40 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
       <div className="max-w-7xl mx-auto px-4 py-6 relative z-10">
         {filteredLaunches.length > 0 ? (
           <>
+            {/* Print-only Table View */}
+            <table className="print-table hidden">
+              <thead>
+                <tr>
+                  <th>Mission Name</th>
+                  <th>Date & Time</th>
+                  <th>Rocket</th>
+                  <th>Launch Location</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredLaunches.map(launch => (
+                  <tr key={launch.id}>
+                    <td>{launch.name}</td>
+                    <td>{formatDate(launch.net)}</td>
+                    <td>{launch.rocket?.configuration?.name || 'Unknown'}</td>
+                    <td>{formatLocation(launch)}</td>
+                    <td>
+                      <span className={`print-status ${
+                        isUpcoming(launch) ? 'upcoming' :
+                        launch.status?.id === 3 ? 'success' : 'failed'
+                      }`}>
+                        {launch.status?.abbrev || 'TBD'}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
             {/* Card View */}
             {displayMode === 'cards' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 no-print">
                 {filteredLaunches.slice(0, 40).map(launch => (
                   <div
                     key={launch.id}
@@ -611,7 +662,7 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
 
             {/* Table View */}
             {displayMode === 'table' && (
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden">
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden no-print">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="bg-teal-800/50 text-yellow-300 border-b border-teal-600/30">
@@ -655,7 +706,7 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
 
             {/* Compact List View */}
             {displayMode === 'compact' && (
-              <div className="space-y-2">
+              <div className="space-y-2 no-print">
                 {filteredLaunches.slice(0, 50).map(launch => (
                   <div
                     key={launch.id}
@@ -716,7 +767,7 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
         )}
 
         {/* Educational Footer Toggle */}
-        <div className="mt-8 text-center">
+        <div className="mt-8 text-center no-print">
           <button
             onClick={() => setShowEducationalSection(!showEducationalSection)}
             className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-400/20 hover:bg-yellow-400/30 text-yellow-300 rounded-lg transition-colors border border-yellow-400/30"
@@ -729,7 +780,7 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
 
         {/* Educational Section (Collapsible) */}
         {showEducationalSection && (
-          <div className="mt-6 p-6 bg-white/10 backdrop-blur-sm rounded-lg border border-yellow-400/30">
+          <div className="mt-6 p-6 bg-white/10 backdrop-blur-sm rounded-lg border border-yellow-400/30 no-print">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
               <div className="flex items-start">
                 <Waves className="w-5 h-5 mr-2 mt-1 text-cyan-300 flex-shrink-0" />
@@ -752,6 +803,11 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Print Footer */}
+      <div className="print-footer hidden">
+        Sea Turtle Space Tracker - PVPV/Rawlings Elementary School | Generated {new Date().toLocaleDateString('en-US')} | Page {'{page}'} of {'{pages}'}
       </div>
     </div>
   );

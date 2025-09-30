@@ -3,8 +3,19 @@ import {
   Rocket, Calendar, Clock, MapPin, Globe, Filter, Search, Grid3x3, List,
   ChevronDown, X, CheckCircle, XCircle, AlertCircle, Loader, ExternalLink,
   BarChart2, Shell, TrendingUp, Eye, EyeOff, Table, Download, Waves, Star,
-  Palmtree, Fish, Anchor, Zap, Printer
+  Palmtree, Fish, Anchor, Zap, Printer, Map
 } from 'lucide-react';
+import dynamic from 'next/dynamic';
+
+// Dynamically import LaunchMapView to avoid SSR issues with Leaflet
+const LaunchMapView = dynamic(() => import('./LaunchMapView'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center h-[600px]">
+      <Loader className="w-12 h-12 animate-spin text-yellow-400" />
+    </div>
+  )
+});
 
 /**
  * Sea Turtle Space Tracker Enhanced - PVPV/Rawlings Elementary School
@@ -26,6 +37,7 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
   const [missionTypeFilter, setMissionTypeFilter] = useState('all');
   const [programFilter, setProgramFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [siteFilter, setSiteFilter] = useState(null); // New: filter by launch site
 
   // UI states
   const [displayMode, setDisplayMode] = useState('cards');
@@ -199,6 +211,12 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
         if (missionType !== missionTypeFilter) return false;
       }
 
+      // Site filter
+      if (siteFilter) {
+        const siteName = launch.pad?.location?.name || launch.pad?.name || '';
+        if (!siteName.includes(siteFilter)) return false;
+      }
+
       // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
@@ -213,7 +231,7 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
       const dateB = new Date(b.net);
       return view === 'upcoming' ? dateA - dateB : dateB - dateA;
     });
-  }, [launches, view, yearFilter, monthFilter, rocketFilter, programFilter, missionTypeFilter, searchQuery]);
+  }, [launches, view, yearFilter, monthFilter, rocketFilter, programFilter, missionTypeFilter, searchQuery, siteFilter]);
 
   // Stats calculation
   const stats = useMemo(() => ({
@@ -362,6 +380,20 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
                 title="List View"
               >
                 <List className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => {
+                  setDisplayMode('map');
+                  setSiteFilter(null);
+                }}
+                className={`p-2 rounded transition-all ${
+                  displayMode === 'map'
+                    ? 'bg-yellow-400 text-teal-900'
+                    : 'text-yellow-300 hover:bg-teal-700/50'
+                }`}
+                title="Map View"
+              >
+                <Map className="w-5 h-5" />
               </button>
               <div className="w-px h-8 bg-yellow-400/30 mx-2" />
               <button
@@ -583,6 +615,21 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
                 ))}
               </tbody>
             </table>
+
+            {/* Map View */}
+            {displayMode === 'map' && (
+              <div className="no-print">
+                <LaunchMapView
+                  launches={launches}
+                  onSiteFilter={(siteName) => {
+                    setSiteFilter(siteName);
+                    setDisplayMode('cards'); // Switch to cards view when filtering
+                  }}
+                  yearFilter={yearFilter}
+                  view={view}
+                />
+              </div>
+            )}
 
             {/* Card View */}
             {displayMode === 'cards' && (

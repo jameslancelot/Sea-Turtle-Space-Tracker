@@ -20,8 +20,8 @@ export default async function handler(req, res) {
     switch (resource) {
       case 'launches':
         // Fetch upcoming and recent past launches separately
-        const upcomingUrl = 'https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=30';
-        const pastUrl = 'https://ll.thespacedevs.com/2.2.0/launch/previous/?limit=20';
+        const upcomingUrl = 'https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=100';
+        const pastUrl = 'https://ll.thespacedevs.com/2.2.0/launch/previous/?limit=100';
 
         try {
           console.log(`📍 Fetching upcoming from: ${upcomingUrl}`);

@@ -1,10 +1,45 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { Rocket, MapPin, CheckCircle, Clock, TrendingUp, Globe, Printer } from 'lucide-react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import PrintableMapView from './PrintableMapView';
 import SwimmingTurtle from './SwimmingTurtle';
+
+// Map controller component to handle flying to locations
+const MapController = ({ flyToLocation }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    if (flyToLocation) {
+      map.flyTo(
+        [flyToLocation.lat, flyToLocation.lng],
+        flyToLocation.zoom || 6,
+        {
+          duration: 1.5,
+          easeLinearity: 0.25
+        }
+      );
+
+      // Open popup if site specified
+      if (flyToLocation.siteName) {
+        // Find and open the marker popup
+        setTimeout(() => {
+          map.eachLayer(layer => {
+            if (layer instanceof L.Marker) {
+              const popup = layer.getPopup();
+              if (popup && popup.getContent && popup.getContent().includes(flyToLocation.siteName)) {
+                layer.openPopup();
+              }
+            }
+          });
+        }, 1600);
+      }
+    }
+  }, [map, flyToLocation]);
+
+  return null;
+};
 
 /**
  * Launch Map View Component
@@ -84,8 +119,20 @@ const swimmingTurtles = [
   }
 ];
 
+// Country coordinates for map flying
+const countryCoordinates = {
+  '🇺🇸 USA': { lat: 28.5, lng: -95, zoom: 4 },
+  '🇨🇳 China': { lat: 35.8, lng: 104.2, zoom: 4 },
+  '🇷🇺 Russia': { lat: 61.5, lng: 105.3, zoom: 3 },
+  '🇳🇿 New Zealand': { lat: -40.9, lng: 174.9, zoom: 6 },
+  '🇮🇳 India': { lat: 13.7, lng: 79.9, zoom: 6 },
+  '🇯🇵 Japan': { lat: 31.4, lng: 130.9, zoom: 6 },
+  '🇫🇷 French Guiana': { lat: 5.2, lng: -52.7, zoom: 8 }
+};
+
 const LaunchMapView = ({ launches, onSiteFilter, yearFilter, view }) => {
   const [selectedSite, setSelectedSite] = useState(null);
+  const [flyToLocation, setFlyToLocation] = useState(null);
 
   // Aggregate launches by location
   const siteData = useMemo(() => {
@@ -165,9 +212,10 @@ const LaunchMapView = ({ launches, onSiteFilter, yearFilter, view }) => {
 
     return {
       totalSites: siteData.length,
-      totalLaunches: siteData.reduce((sum, site) => sum + site.total, 0),
+      totalUpcoming: siteData.reduce((sum, site) => sum + site.upcoming, 0),
       topSites: siteData
-        .sort((a, b) => b.total - a.total)
+        .filter(site => site.upcoming > 0)
+        .sort((a, b) => b.upcoming - a.upcoming)
         .slice(0, 5),
       countries: Object.entries(countries)
         .sort((a, b) => b[1] - a[1])
@@ -177,7 +225,7 @@ const LaunchMapView = ({ launches, onSiteFilter, yearFilter, view }) => {
 
   // Create custom turtle marker icon
   const createTurtleMarker = (site) => {
-    const { size, colorClass, hueRotate } = getTurtleSize(site.total);
+    const { size, colorClass, hueRotate } = getTurtleSize(site.upcoming);
     const hasPulse = site.upcoming > 0;
 
     return L.divIcon({
@@ -195,7 +243,7 @@ const LaunchMapView = ({ launches, onSiteFilter, yearFilter, view }) => {
                  border-radius: 50%;
                ">
           </div>
-          <span class="turtle-marker-badge">${site.total}</span>
+          <span class="turtle-marker-badge">${site.upcoming}</span>
           ${hasPulse ? '<span class="pulse-ring"></span>' : ''}
         </div>
       `,
@@ -207,13 +255,13 @@ const LaunchMapView = ({ launches, onSiteFilter, yearFilter, view }) => {
   };
 
   const getTurtleSize = (count) => {
-    if (count >= 20) {
+    if (count >= 10) {
       return { size: 90, colorClass: 'red', hueRotate: 340 };
     }
-    if (count >= 10) {
+    if (count >= 5) {
       return { size: 70, colorClass: 'orange', hueRotate: 20 };
     }
-    if (count >= 5) {
+    if (count >= 3) {
       return { size: 55, colorClass: 'yellow', hueRotate: 40 };
     }
     return { size: 40, colorClass: 'green', hueRotate: 120 };
@@ -251,12 +299,12 @@ const LaunchMapView = ({ launches, onSiteFilter, yearFilter, view }) => {
             <div className="space-y-3">
               <div className="bg-[#003366]/40 p-4 rounded-xl">
                 <div className="text-3xl font-black text-[#FDB913]">{globalStats.totalSites}</div>
-                <div className="text-sm text-white font-semibold">Launch Sites</div>
+                <div className="text-sm text-white font-semibold">Active Launch Sites</div>
               </div>
 
               <div className="bg-[#003366]/40 p-4 rounded-xl">
-                <div className="text-3xl font-black text-[#6BA539]">{globalStats.totalLaunches}</div>
-                <div className="text-sm text-white font-semibold">Total Launches</div>
+                <div className="text-3xl font-black text-[#6BA539]">{globalStats.totalUpcoming}</div>
+                <div className="text-sm text-white font-semibold">Upcoming Launches</div>
               </div>
             </div>
           </div>
@@ -270,15 +318,24 @@ const LaunchMapView = ({ launches, onSiteFilter, yearFilter, view }) => {
               {globalStats.topSites.map((site, index) => (
                 <div
                   key={site.name}
-                  className="bg-[#003366]/40 p-3 rounded-lg hover:bg-[#003366]/60 transition-colors cursor-pointer"
-                  onClick={() => setSelectedSite(site)}
+                  className="bg-[#003366]/40 p-3 rounded-lg hover:bg-[#003366]/60 transition-colors cursor-pointer group"
+                  onClick={() => {
+                    setSelectedSite(site);
+                    setFlyToLocation({
+                      lat: site.lat,
+                      lng: site.lng,
+                      zoom: 8,
+                      siteName: site.name
+                    });
+                  }}
+                  title={`Click to view ${site.name} on map`}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[#FDB913] font-black text-lg">{index + 1}.</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <span className="text-[#FDB913] font-black text-lg flex-shrink-0">{index + 1}.</span>
                       <span className="text-white text-sm font-semibold truncate">{site.name}</span>
                     </div>
-                    <span className="text-[#6BA539] font-black">{site.total}</span>
+                    <span className="text-[#6BA539] font-black flex-shrink-0">{site.upcoming}</span>
                   </div>
                 </div>
               ))}
@@ -292,7 +349,17 @@ const LaunchMapView = ({ launches, onSiteFilter, yearFilter, view }) => {
             </h4>
             <div className="space-y-2">
               {globalStats.countries.map(([country, count]) => (
-                <div key={country} className="bg-[#003366]/40 p-3 rounded-lg">
+                <div
+                  key={country}
+                  className="bg-[#003366]/40 p-3 rounded-lg hover:bg-[#003366]/60 transition-colors cursor-pointer"
+                  onClick={() => {
+                    const coords = countryCoordinates[country];
+                    if (coords) {
+                      setFlyToLocation(coords);
+                    }
+                  }}
+                  title={coords ? `Click to view ${country} on map` : undefined}
+                >
                   <div className="flex items-center justify-between">
                     <span className="text-white text-sm font-semibold">{country}</span>
                     <span className="text-[#FDB913] font-black">{count}</span>
@@ -314,6 +381,7 @@ const LaunchMapView = ({ launches, onSiteFilter, yearFilter, view }) => {
           className="h-full w-full z-0"
           style={{ background: '#2B8C74' }}
         >
+          <MapController flyToLocation={flyToLocation} />
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -340,30 +408,10 @@ const LaunchMapView = ({ launches, onSiteFilter, yearFilter, view }) => {
                       📍 {site.padName}
                     </div>
 
-                    <div className="grid grid-cols-3 gap-2 mb-3">
-                      <div className="bg-[#F7941D]/20 p-2 rounded text-center">
-                        <div className="font-black text-[#003366] text-xl">{site.total}</div>
-                        <div className="text-xs text-gray-600 font-semibold">Total</div>
-                      </div>
-                      <div className="bg-[#FDB913]/20 p-2 rounded text-center">
-                        <div className="font-black text-[#003366] text-xl">{site.upcoming}</div>
-                        <div className="text-xs text-gray-600 font-semibold">Upcoming</div>
-                      </div>
-                      <div className="bg-[#6BA539]/20 p-2 rounded text-center">
-                        <div className="font-black text-[#003366] text-xl">{site.past}</div>
-                        <div className="text-xs text-gray-600 font-semibold">Past</div>
-                      </div>
+                    <div className="bg-gradient-to-r from-[#FDB913]/30 to-[#6BA539]/30 p-3 rounded-xl mb-3 text-center">
+                      <div className="font-black text-[#003366] text-3xl">{site.upcoming}</div>
+                      <div className="text-sm text-gray-700 font-bold">Upcoming Launches</div>
                     </div>
-
-                    {site.past > 0 && (
-                      <div className="mb-3 text-center">
-                        <div className="text-sm text-gray-600 font-semibold">
-                          Success Rate: <span className="text-[#6BA539] font-black">
-                            {Math.round((site.successful / site.past) * 100)}%
-                          </span>
-                        </div>
-                      </div>
-                    )}
 
                     <div className="mb-3">
                       <div className="text-xs text-gray-600 font-bold mb-1">Top Companies:</div>

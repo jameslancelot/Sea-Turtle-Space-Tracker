@@ -33,23 +33,23 @@ const PrintableMapView = ({ siteData, launches }) => {
 
       {/* Legend */}
       <div className="print-legend">
-        <h3>Map Legend</h3>
+        <h3>Map Legend - Upcoming Launches</h3>
         <div className="legend-items">
           <div className="legend-item">
             <span className="legend-dot red"></span>
-            <span>Very Active (20+ launches)</span>
+            <span>Very Active (10+ upcoming)</span>
           </div>
           <div className="legend-item">
             <span className="legend-dot orange"></span>
-            <span>Active (10-19 launches)</span>
+            <span>Active (5-9 upcoming)</span>
           </div>
           <div className="legend-item">
             <span className="legend-dot yellow"></span>
-            <span>Moderate (5-9 launches)</span>
+            <span>Moderate (3-4 upcoming)</span>
           </div>
           <div className="legend-item">
             <span className="legend-dot green"></span>
-            <span>New (1-4 launches)</span>
+            <span>Planning (1-2 upcoming)</span>
           </div>
         </div>
       </div>

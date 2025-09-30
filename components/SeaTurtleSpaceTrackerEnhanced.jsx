@@ -44,10 +44,31 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
   const [showStats, setShowStats] = useState(true);
   const [showEducationalSection, setShowEducationalSection] = useState(false);
 
-  // Fetch launch data
+  // Fetch launch data with caching
   useEffect(() => {
-    const fetchData = async () => {
+    const CACHE_KEY = 'space-turtle-launches-cache-v2';
+    const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+
+    const fetchData = async (bypassCache = false) => {
       try {
+        // Try to load from cache first
+        if (!bypassCache && typeof window !== 'undefined') {
+          const cached = localStorage.getItem(CACHE_KEY);
+          if (cached) {
+            const { data, timestamp } = JSON.parse(cached);
+            const age = Date.now() - timestamp;
+
+            if (age < CACHE_DURATION) {
+              console.log('📦 Loading launches from cache (age:', Math.round(age / 1000 / 60), 'minutes)');
+              setLaunches(data);
+              setLoading(false);
+              return;
+            } else {
+              console.log('🗑️ Cache expired, fetching fresh data');
+            }
+          }
+        }
+
         setLoading(true);
         setError(null);
 
@@ -56,6 +77,20 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
 
         const launchesData = await response.json();
         setLaunches(launchesData);
+
+        // Save to cache
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem(CACHE_KEY, JSON.stringify({
+              data: launchesData,
+              timestamp: Date.now()
+            }));
+            console.log('💾 Saved', launchesData.length, 'launches to cache');
+          } catch (cacheError) {
+            console.warn('Cache storage failed:', cacheError);
+          }
+        }
+
         setLoading(false);
 
       } catch (err) {
@@ -65,8 +100,12 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
       }
     };
 
-    fetchData();
-    const interval = setInterval(fetchData, 300000);
+    // Initial load (try cache)
+    fetchData(false);
+
+    // Periodic refresh (bypass cache)
+    const interval = setInterval(() => fetchData(true), 300000); // 5 minutes
+
     return () => clearInterval(interval);
   }, []);
 
@@ -620,7 +659,7 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
             {displayMode === 'map' && (
               <div className="no-print">
                 <LaunchMapView
-                  launches={launches}
+                  launches={filteredLaunches}
                   onSiteFilter={(siteName) => {
                     setSiteFilter(siteName);
                     setDisplayMode('cards'); // Switch to cards view when filtering

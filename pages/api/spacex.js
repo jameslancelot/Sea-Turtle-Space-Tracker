@@ -20,8 +20,9 @@ export default async function handler(req, res) {
     switch (resource) {
       case 'launches':
         // Fetch upcoming and recent past launches (all providers)
-        const upcomingUrl = 'https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=100';
-        const pastUrl = 'https://ll.thespacedevs.com/2.2.0/launch/previous/?limit=100';
+        // Increased limit to capture more launches (326+ upcoming available)
+        const upcomingUrl = 'https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=300';
+        const pastUrl = 'https://ll.thespacedevs.com/2.2.0/launch/previous/?limit=150';
 
         try {
           console.log(`📍 Fetching upcoming from: ${upcomingUrl}`);
@@ -80,7 +81,7 @@ export default async function handler(req, res) {
       
       case 'upcoming':
         // Get upcoming launches with confirmed dates (all providers)
-        apiUrl = 'https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=100';
+        apiUrl = 'https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=300';
         break;
         
       case 'rockets':

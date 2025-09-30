@@ -1,9 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Rocket, Calendar, Clock, MapPin, Globe, Waves, Shell, Anchor, CheckCircle, XCircle, AlertCircle, Loader, ExternalLink, Star, Zap, Palmtree, Fish } from 'lucide-react';
+import dynamic from 'next/dynamic';
+
+// Dynamically import LaunchMapView to avoid SSR issues with Leaflet
+const LaunchMapView = dynamic(() => import('./LaunchMapView'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center h-[600px]">
+      <Loader className="w-12 h-12 animate-spin text-[#FDB913]" />
+    </div>
+  )
+});
 
 /**
  * Sea Turtle Space Tracker - PVPV/Rawlings Elementary School
- * 
+ *
  * Features the amazing Space Turtle Astronaut mascot!
  * "Surfing to Success" - From the Ocean to the Stars! 🐢🚀
  */
@@ -16,6 +27,7 @@ const SeaTurtleSpaceTrackerBranded = () => {
   const [countdown, setCountdown] = useState({});
   const [showHeroBanner, setShowHeroBanner] = useState(true);
   const [yearFilter, setYearFilter] = useState('2025'); // Default to 2025 for upcoming launches
+  const [siteFilter, setSiteFilter] = useState(null); // New: filter by launch site
 
   // Add floating animation style
   const floatingStyle = {
@@ -131,12 +143,20 @@ const SeaTurtleSpaceTrackerBranded = () => {
     .filter(launch => {
       const launchDate = new Date(launch.net);
       const launchYear = launchDate.getFullYear();
-      
-      // First filter by upcoming/past
-      const isUpcomingLaunch = isUpcoming(launch);
-      if (view === 'upcoming' && !isUpcomingLaunch) return false;
-      if (view === 'past' && isUpcomingLaunch) return false;
-      
+
+      // First filter by upcoming/past (skip for map view)
+      if (view !== 'map') {
+        const isUpcomingLaunch = isUpcoming(launch);
+        if (view === 'upcoming' && !isUpcomingLaunch) return false;
+        if (view === 'past' && isUpcomingLaunch) return false;
+      }
+
+      // Apply site filter if active
+      if (siteFilter) {
+        const siteName = launch.pad?.location?.name || launch.pad?.name || '';
+        if (!siteName.includes(siteFilter)) return false;
+      }
+
       // Apply year filter
       if (yearFilter === 'all') {
         return true;
@@ -147,7 +167,7 @@ const SeaTurtleSpaceTrackerBranded = () => {
       } else if (yearFilter === '2027+') {
         return launchYear >= 2027;
       }
-      
+
       return true;
     })
     .sort((a, b) => {
@@ -303,17 +323,18 @@ const SeaTurtleSpaceTrackerBranded = () => {
       <div className="relative z-10 max-w-7xl mx-auto px-4 py-6">
         {/* View Toggle - Surfboard Style! */}
         <div className="flex flex-col items-center gap-4 mb-6">
-          {/* Upcoming/Past Toggle */}
+          {/* Upcoming/Past/Map Toggle */}
           <div className="bg-white/20 backdrop-blur-md rounded-full p-1.5 inline-flex shadow-xl border-2 border-[#6BA539]">
             <button
               onClick={() => {
                 setView('upcoming');
                 // Default to 2025 when switching to upcoming
-                if (view === 'past') setYearFilter('2025');
+                if (view === 'past' || view === 'map') setYearFilter('2025');
+                setSiteFilter(null);
               }}
               className={`px-6 py-3 rounded-full transition-all font-bold text-sm ${
-                view === 'upcoming' 
-                  ? 'bg-gradient-to-r from-[#F7941D] to-[#FDB913] text-[#003366] shadow-lg transform scale-105' 
+                view === 'upcoming'
+                  ? 'bg-gradient-to-r from-[#F7941D] to-[#FDB913] text-[#003366] shadow-lg transform scale-105'
                   : 'text-white hover:text-[#FDB913]'
               }`}
             >
@@ -323,53 +344,98 @@ const SeaTurtleSpaceTrackerBranded = () => {
               onClick={() => {
                 setView('past');
                 // Show all years for past launches by default
-                if (view === 'upcoming') setYearFilter('all');
+                if (view === 'upcoming' || view === 'map') setYearFilter('all');
+                setSiteFilter(null);
               }}
               className={`px-6 py-3 rounded-full transition-all font-bold text-sm ${
-                view === 'past' 
-                  ? 'bg-gradient-to-r from-[#F7941D] to-[#FDB913] text-[#003366] shadow-lg transform scale-105' 
+                view === 'past'
+                  ? 'bg-gradient-to-r from-[#F7941D] to-[#FDB913] text-[#003366] shadow-lg transform scale-105'
                   : 'text-white hover:text-[#FDB913]'
               }`}
             >
               ✅ Past Launches
             </button>
+            <button
+              onClick={() => {
+                setView('map');
+                setSiteFilter(null);
+              }}
+              className={`px-6 py-3 rounded-full transition-all font-bold text-sm ${
+                view === 'map'
+                  ? 'bg-gradient-to-r from-[#F7941D] to-[#FDB913] text-[#003366] shadow-lg transform scale-105'
+                  : 'text-white hover:text-[#FDB913]'
+              }`}
+            >
+              🌍 Launch Map
+            </button>
           </div>
           
-          {/* Year Filter */}
-          <div className="flex items-center gap-3 bg-white/20 backdrop-blur-md rounded-full px-4 py-2 shadow-xl border border-[#6BA539]/40">
-            <span className="text-white font-bold text-sm">📅 Filter Year:</span>
-            <select
-              value={yearFilter}
-              onChange={(e) => setYearFilter(e.target.value)}
-              className="bg-[#2B8C74]/60 text-white font-bold text-sm px-4 py-2 rounded-full border border-[#FDB913]/40 hover:bg-[#2B8C74]/80 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#FDB913]"
-            >
-              <option value="2025">2025</option>
-              <option value="2026">2026</option>
-              <option value="2027+">2027+</option>
-              <option value="all">All Years</option>
-            </select>
-            {yearFilter !== 'all' && (
+          {/* Year Filter - Only show on list views */}
+          {view !== 'map' && (
+            <div className="flex items-center gap-3 bg-white/20 backdrop-blur-md rounded-full px-4 py-2 shadow-xl border border-[#6BA539]/40">
+              <span className="text-white font-bold text-sm">📅 Filter Year:</span>
+              <select
+                value={yearFilter}
+                onChange={(e) => setYearFilter(e.target.value)}
+                className="bg-[#2B8C74]/60 text-white font-bold text-sm px-4 py-2 rounded-full border border-[#FDB913]/40 hover:bg-[#2B8C74]/80 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#FDB913]"
+              >
+                <option value="2025">2025</option>
+                <option value="2026">2026</option>
+                <option value="2027+">2027+</option>
+                <option value="all">All Years</option>
+              </select>
+              {yearFilter !== 'all' && (
+                <button
+                  onClick={() => setYearFilter('all')}
+                  className="text-[#FDB913] hover:text-white transition-colors ml-1"
+                  title="Clear filter"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Site Filter Display - Show when active */}
+          {siteFilter && view !== 'map' && (
+            <div className="flex items-center gap-3 bg-[#F7941D]/30 backdrop-blur-md rounded-full px-4 py-2 shadow-xl border border-[#FDB913]">
+              <MapPin className="w-4 h-4 text-white" />
+              <span className="text-white font-bold text-sm">Showing: {siteFilter}</span>
               <button
-                onClick={() => setYearFilter('all')}
-                className="text-[#FDB913] hover:text-white transition-colors ml-1"
-                title="Clear filter"
+                onClick={() => setSiteFilter(null)}
+                className="text-white hover:text-[#FDB913] transition-colors"
+                title="Clear site filter"
               >
                 ✕
               </button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
         
-        {/* Results Count */}
-        {filteredLaunches.length > 0 && (
+        {/* Results Count - Only show for list views */}
+        {filteredLaunches.length > 0 && view !== 'map' && (
           <div className="text-center mb-4">
             <p className="text-[#FDB913] font-bold text-sm">
               Showing {filteredLaunches.length} {view} {filteredLaunches.length === 1 ? 'launch' : 'launches'}
               {yearFilter !== 'all' && ` for ${yearFilter === '2027+' ? '2027 and beyond' : yearFilter}`}
+              {siteFilter && ` from ${siteFilter}`}
             </p>
           </div>
         )}
 
+        {/* Render Map View or Launch List */}
+        {view === 'map' ? (
+          <LaunchMapView
+            launches={launches}
+            onSiteFilter={(siteName) => {
+              setSiteFilter(siteName);
+              setView('upcoming'); // Switch to upcoming view when filtering
+            }}
+            yearFilter={yearFilter}
+            view={view}
+          />
+        ) : (
+          <>
         {/* Stats Bar - Ocean Themed! */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-gradient-to-br from-white/25 to-[#2B8C74]/40 backdrop-blur-md rounded-2xl p-5 text-center transform hover:scale-105 transition-all shadow-xl border-2 border-[#FDB913]/40">
@@ -530,7 +596,11 @@ const SeaTurtleSpaceTrackerBranded = () => {
           </div>
         )}
 
-        {/* Educational Footer with School Branding */}
+          </>
+        )}
+
+        {/* Educational Footer with School Branding - Show for all views */}
+        {view !== 'map' && (
         <div className="mt-12 p-8 bg-gradient-to-br from-white/20 to-[#2B8C74]/40 backdrop-blur-md rounded-2xl shadow-2xl border-2 border-[#6BA539]/30">
           <div className="flex items-center justify-center gap-3 mb-6">
             <Fish className="w-8 h-8 text-[#6BA539]" />
@@ -569,6 +639,7 @@ const SeaTurtleSpaceTrackerBranded = () => {
             </p>
           </div>
         </div>
+        )}
       </div>
     </div>
   );

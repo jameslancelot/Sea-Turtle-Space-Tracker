@@ -57,3 +57,183 @@ html {
 .launching {
   animation: launch 3s ease-in forwards;
 }
+
+/* Leaflet Map Customizations - Sea Turtle Theme */
+.leaflet-container {
+  font-family: inherit;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 51, 102, 0.3);
+}
+
+.leaflet-popup-content {
+  margin: 0;
+  font-family: inherit;
+}
+
+.leaflet-popup-tip {
+  background: white;
+}
+
+/* Custom marker pulse animation */
+@keyframes marker-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.1);
+  }
+}
+
+.pulse-marker {
+  animation: marker-pulse 2s ease-in-out infinite;
+}
+
+/* Map loading state */
+.leaflet-container.leaflet-touch-drag {
+  cursor: grab;
+}
+
+.leaflet-container.leaflet-touch-drag.leaflet-drag-target {
+  cursor: grabbing;
+}
+
+/* Print Styles */
+@media print {
+  /* Hide non-essential elements */
+  .no-print,
+  header button,
+  .filter-bar,
+  nav,
+  [role="navigation"] {
+    display: none !important;
+  }
+
+  /* Reset backgrounds for print */
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Page setup */
+  @page {
+    size: letter;
+    margin: 0.75in;
+  }
+
+  /* Print header */
+  .print-header {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 3px solid #14b8a6;
+  }
+
+  .print-header img {
+    width: 80px !important;
+    height: 80px !important;
+    margin-bottom: 0.5rem;
+  }
+
+  .print-header h1 {
+    font-size: 24px !important;
+    font-weight: bold;
+    color: #0f766e !important;
+    margin: 0.25rem 0;
+  }
+
+  .print-header .subtitle {
+    font-size: 14px !important;
+    color: #0e7490 !important;
+  }
+
+  .print-header .date {
+    font-size: 12px !important;
+    color: #475569 !important;
+    margin-top: 0.25rem;
+  }
+
+  /* Print table styles */
+  .print-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+  }
+
+  .print-table thead {
+    background-color: #ccfbf1 !important;
+  }
+
+  .print-table th {
+    padding: 10px 8px;
+    text-align: left;
+    font-weight: 600;
+    color: #0f766e !important;
+    border-bottom: 2px solid #14b8a6;
+    font-size: 11px;
+  }
+
+  .print-table td {
+    padding: 8px;
+    border-bottom: 1px solid #d1d5db;
+    color: #1f2937 !important;
+    font-size: 10px;
+  }
+
+  .print-table tr:nth-child(even) {
+    background-color: #f0fdfa !important;
+  }
+
+  /* Status badges */
+  .print-status {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-size: 9px;
+    font-weight: 600;
+  }
+
+  .print-status.upcoming {
+    background-color: #fef3c7 !important;
+    color: #92400e !important;
+  }
+
+  .print-status.success {
+    background-color: #d1fae5 !important;
+    color: #065f46 !important;
+  }
+
+  .print-status.failed {
+    background-color: #fee2e2 !important;
+    color: #991b1b !important;
+  }
+
+  /* Print footer */
+  .print-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 10px;
+    color: #6b7280 !important;
+    padding: 0.5rem;
+    border-top: 1px solid #d1d5db;
+  }
+
+  /* Page breaks */
+  .print-table tr {
+    page-break-inside: avoid;
+  }
+
+  /* Force page break after every 20 rows */
+  .print-table tbody tr:nth-child(20n) {
+    page-break-after: always;
+  }
+}

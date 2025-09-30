@@ -2,6 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
+  productionBrowserSourceMaps: false, // Disable source maps to reduce feedback.js noise
   images: {
     domains: [
       'images2.imgbox.com',

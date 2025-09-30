@@ -13,7 +13,7 @@ const PrintableMapView = ({ siteData, launches }) => {
       {/* Header */}
       <div className="print-header">
         <img
-          src="/images/space-turtle-logo.png"
+          src="/images/NEW-LOGO.png"
           alt="Space Turtle"
           className="print-logo"
         />

@@ -272,14 +272,14 @@ const LaunchMapView = ({ launches, onSiteFilter, yearFilter, view }) => {
       {/* Mobile Stats Toggle Button */}
       <button
         onClick={() => setSelectedSite(selectedSite ? null : globalStats.topSites[0])}
-        className="lg:hidden bg-[#F7941D] text-[#003366] font-black py-3 px-6 rounded-xl shadow-lg flex items-center justify-center gap-2 hover:bg-[#FDB913] transition-colors"
+        className="lg:hidden bg-[#F7941D] text-[#003366] font-black py-3 px-6 rounded-xl shadow-lg flex items-center justify-center gap-2 hover:bg-[#FDB913] transition-colors no-print"
       >
         <Globe className="w-5 h-5" />
         {selectedSite ? 'Hide Stats' : 'Show Global Stats'}
       </button>
 
       {/* Stats Sidebar */}
-      <div className="hidden lg:block w-80 bg-gradient-to-br from-white/20 to-[#2B8C74]/40 backdrop-blur-md rounded-2xl p-6 overflow-y-auto shadow-2xl border-2 border-[#6BA539]/30">
+      <div className="hidden lg:block w-80 bg-gradient-to-br from-white/20 to-[#2B8C74]/40 backdrop-blur-md rounded-2xl p-6 overflow-y-auto shadow-2xl border-2 border-[#6BA539]/30 no-print">
         <div className="space-y-6">
           {/* Print Button */}
           <button
@@ -374,7 +374,7 @@ const LaunchMapView = ({ launches, onSiteFilter, yearFilter, view }) => {
       </div>
 
       {/* Map Container */}
-      <div className="flex-1 bg-gradient-to-br from-white/20 to-[#2B8C74]/40 backdrop-blur-md rounded-2xl overflow-hidden shadow-2xl border-2 border-[#6BA539]/30">
+      <div className="flex-1 bg-gradient-to-br from-white/20 to-[#2B8C74]/40 backdrop-blur-md rounded-2xl overflow-hidden shadow-2xl border-2 border-[#6BA539]/30 no-print">
         <MapContainer
           center={[28.5, -10]}
           zoom={2}

@@ -701,17 +701,15 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
 
             {/* Map View */}
             {displayMode === 'map' && (
-              <div className="no-print">
-                <LaunchMapView
-                  launches={filteredLaunches}
-                  onSiteFilter={(siteName) => {
-                    setSiteFilter(siteName);
-                    setDisplayMode('cards'); // Switch to cards view when filtering
-                  }}
-                  yearFilter={yearFilter}
-                  view={view}
-                />
-              </div>
+              <LaunchMapView
+                launches={filteredLaunches}
+                onSiteFilter={(siteName) => {
+                  setSiteFilter(siteName);
+                  setDisplayMode('cards'); // Switch to cards view when filtering
+                }}
+                yearFilter={yearFilter}
+                view={view}
+              />
             )}
 
             {/* Card View */}

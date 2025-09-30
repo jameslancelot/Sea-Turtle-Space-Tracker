@@ -210,23 +210,32 @@ const LaunchMapView = ({ launches, onSiteFilter, yearFilter, view }) => {
       countries[country] = (countries[country] || 0) + site.total;
     });
 
+    // Determine which count to use based on view filter
+    const isPastView = view === 'past';
+    const launchCount = isPastView ? 'past' : 'upcoming';
+
     return {
       totalSites: siteData.length,
       totalUpcoming: siteData.reduce((sum, site) => sum + site.upcoming, 0),
+      totalPast: siteData.reduce((sum, site) => sum + site.past, 0),
+      totalLaunches: siteData.reduce((sum, site) => sum + site[launchCount], 0),
+      isPastView,
       topSites: siteData
-        .filter(site => site.upcoming > 0)
-        .sort((a, b) => b.upcoming - a.upcoming)
+        .filter(site => site[launchCount] > 0)
+        .sort((a, b) => b[launchCount] - a[launchCount])
         .slice(0, 5),
       countries: Object.entries(countries)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 6)
     };
-  }, [siteData]);
+  }, [siteData, view]);
 
   // Create custom turtle marker icon
   const createTurtleMarker = (site) => {
-    const { size, colorClass, hueRotate } = getTurtleSize(site.upcoming);
-    const hasPulse = site.upcoming > 0;
+    const isPastView = view === 'past';
+    const count = isPastView ? site.past : site.upcoming;
+    const { size, colorClass, hueRotate } = getTurtleSize(count);
+    const hasPulse = count > 0;
 
     return L.divIcon({
       html: `
@@ -243,7 +252,7 @@ const LaunchMapView = ({ launches, onSiteFilter, yearFilter, view }) => {
                  border-radius: 50%;
                ">
           </div>
-          <span class="turtle-marker-badge">${site.upcoming}</span>
+          <span class="turtle-marker-badge">${count}</span>
           ${hasPulse ? '<span class="pulse-ring"></span>' : ''}
         </div>
       `,
@@ -303,8 +312,10 @@ const LaunchMapView = ({ launches, onSiteFilter, yearFilter, view }) => {
               </div>
 
               <div className="bg-[#003366]/40 p-4 rounded-xl">
-                <div className="text-3xl font-black text-[#6BA539]">{globalStats.totalUpcoming}</div>
-                <div className="text-sm text-white font-semibold">Upcoming Launches</div>
+                <div className="text-3xl font-black text-[#6BA539]">{globalStats.totalLaunches}</div>
+                <div className="text-sm text-white font-semibold">
+                  {globalStats.isPastView ? 'Past Launches' : 'Upcoming Launches'}
+                </div>
               </div>
             </div>
           </div>
@@ -335,7 +346,9 @@ const LaunchMapView = ({ launches, onSiteFilter, yearFilter, view }) => {
                       <span className="text-[#FDB913] font-black text-lg flex-shrink-0">{index + 1}.</span>
                       <span className="text-white text-sm font-semibold truncate">{site.name}</span>
                     </div>
-                    <span className="text-[#6BA539] font-black flex-shrink-0">{site.upcoming}</span>
+                    <span className="text-[#6BA539] font-black flex-shrink-0">
+                      {globalStats.isPastView ? site.past : site.upcoming}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -411,8 +424,12 @@ const LaunchMapView = ({ launches, onSiteFilter, yearFilter, view }) => {
                     </div>
 
                     <div className="bg-gradient-to-r from-[#FDB913]/30 to-[#6BA539]/30 p-3 rounded-xl mb-3 text-center">
-                      <div className="font-black text-[#003366] text-3xl">{site.upcoming}</div>
-                      <div className="text-sm text-gray-700 font-bold">Upcoming Launches</div>
+                      <div className="font-black text-[#003366] text-3xl">
+                        {view === 'past' ? site.past : site.upcoming}
+                      </div>
+                      <div className="text-sm text-gray-700 font-bold">
+                        {view === 'past' ? 'Past Launches' : 'Upcoming Launches'}
+                      </div>
                     </div>
 
                     <div className="mb-3">

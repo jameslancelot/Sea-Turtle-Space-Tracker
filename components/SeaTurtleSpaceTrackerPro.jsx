@@ -40,7 +40,8 @@ const SeaTurtleSpaceTrackerPro = () => {
         const response = await fetch('/api/spacex?resource=launches');
         if (!response.ok) throw new Error(`API returned status ${response.status}`);
 
-        const launchesData = await response.json();
+        const data = await response.json();
+        const launchesData = data.results || data;
         setLaunches(launchesData);
         setLoading(false);
 

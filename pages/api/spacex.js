@@ -72,7 +72,7 @@ export default async function handler(req, res) {
 
           console.log(`📊 Filtered to ${filteredResults.length} launches with confirmed dates`);
 
-          return res.status(200).json(filteredResults);
+          return res.status(200).json({ results: filteredResults });
         } catch (err) {
           console.error(`❌ Error fetching launches:`, err.message);
           throw err;

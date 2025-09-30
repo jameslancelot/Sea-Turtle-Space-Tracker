@@ -35,8 +35,9 @@ const SeaTurtleSpaceTracker = () => {
         }
         
         const data = await response.json();
-        console.log(`  ✅ Successfully fetched ${Array.isArray(data) ? data.length : 'data'} ${resource}`);
-        return data;
+        const result = data.results || data;
+        console.log(`  ✅ Successfully fetched ${Array.isArray(result) ? result.length : 'data'} ${resource}`);
+        return result;
       } catch (error) {
         console.error(`  ❌ Failed to fetch ${resource}:`, error.message);
         throw error;

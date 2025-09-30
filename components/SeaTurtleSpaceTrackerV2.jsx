@@ -32,9 +32,10 @@ const SeaTurtleSpaceTrackerV2 = () => {
           throw new Error(`API returned status ${response.status}`);
         }
         
-        const launchesData = await response.json();
+        const data = await response.json();
+        const launchesData = data.results || data;
         console.log(`✅ Fetched ${launchesData.length} launches`);
-        
+
         setLaunches(launchesData);
         setLoading(false);
         console.log('✅ Data loading complete! Sea Turtles ready for launch! 🐢🚀');

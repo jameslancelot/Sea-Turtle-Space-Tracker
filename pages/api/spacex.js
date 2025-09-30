@@ -19,14 +19,10 @@ export default async function handler(req, res) {
     // Map our resources to Launch Library 2 endpoints
     switch (resource) {
       case 'launches':
-        // Fetch upcoming and recent past launches (all providers)
-        // Increased limit to capture more launches (326+ upcoming available)
-        const upcomingUrl = 'https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=300';
-        const pastUrl = 'https://ll.thespacedevs.com/2.2.0/launch/previous/?limit=150';
-
+        // Fetch upcoming and recent past launches with pagination (all providers)
+        // API has 100/request limit, so we fetch multiple pages
         try {
-          console.log(`📍 Fetching upcoming from: ${upcomingUrl}`);
-          console.log(`📍 Fetching past from: ${pastUrl}`);
+          console.log(`🚀 Fetching paginated upcoming and past launches...`);
 
           // Fetch with timeout protection
           const fetchWithTimeout = (url, timeout = 20000) => {
@@ -38,28 +34,41 @@ export default async function handler(req, res) {
             ]);
           };
 
-          const [upcomingRes, pastRes] = await Promise.all([
-            fetchWithTimeout(upcomingUrl),
-            fetchWithTimeout(pastUrl)
-          ]);
-
-          if (!upcomingRes.ok) {
-            throw new Error(`Upcoming API error: ${upcomingRes.status}`);
-          }
-          if (!pastRes.ok) {
-            throw new Error(`Past API error: ${pastRes.status}`);
+          // Fetch upcoming launches with pagination (up to 3 pages = 300 launches)
+          const upcomingPages = 3;
+          const upcomingPromises = [];
+          for (let i = 0; i < upcomingPages; i++) {
+            const offset = i * 100;
+            const url = `https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=100&offset=${offset}`;
+            upcomingPromises.push(fetchWithTimeout(url));
           }
 
-          const upcomingData = await upcomingRes.json();
-          const pastData = await pastRes.json();
+          // Fetch past launches (2 pages = 200 launches)
+          const pastPages = 2;
+          const pastPromises = [];
+          for (let i = 0; i < pastPages; i++) {
+            const offset = i * 100;
+            const url = `https://ll.thespacedevs.com/2.2.0/launch/previous/?limit=100&offset=${offset}`;
+            pastPromises.push(fetchWithTimeout(url));
+          }
 
-          // Combine results
-          const combinedResults = [
-            ...(upcomingData.results || []),
-            ...(pastData.results || [])
-          ];
+          const responses = await Promise.all([...upcomingPromises, ...pastPromises]);
 
-          console.log(`✅ Combined ${upcomingData.results?.length || 0} upcoming + ${pastData.results?.length || 0} past = ${combinedResults.length} total launches`);
+          // Check all responses
+          responses.forEach((res, i) => {
+            if (!res.ok) {
+              throw new Error(`API error on page ${i}: ${res.status}`);
+            }
+          });
+
+          // Parse all responses
+          const dataPromises = responses.map(res => res.json());
+          const allData = await Promise.all(dataPromises);
+
+          // Combine all results
+          const combinedResults = allData.flatMap(data => data.results || []);
+
+          console.log(`✅ Fetched ${upcomingPages} upcoming pages + ${pastPages} past pages = ${combinedResults.length} total launches`);
 
           // Filter out TBD placeholder dates
           const filteredResults = combinedResults.filter(launch => {

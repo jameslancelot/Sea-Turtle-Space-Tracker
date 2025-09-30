@@ -47,7 +47,7 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
 
   // Fetch launch data with caching
   useEffect(() => {
-    const CACHE_KEY = 'space-turtle-launches-cache-v2';
+    const CACHE_KEY = 'space-turtle-launches-cache-v3'; // v3: Added pagination for more launches
     const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
     const fetchData = async (bypassCache = false) => {

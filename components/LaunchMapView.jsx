@@ -348,24 +348,26 @@ const LaunchMapView = ({ launches, onSiteFilter, yearFilter, view }) => {
               By Country
             </h4>
             <div className="space-y-2">
-              {globalStats.countries.map(([country, count]) => (
-                <div
-                  key={country}
-                  className="bg-[#003366]/40 p-3 rounded-lg hover:bg-[#003366]/60 transition-colors cursor-pointer"
-                  onClick={() => {
-                    const coords = countryCoordinates[country];
-                    if (coords) {
-                      setFlyToLocation(coords);
-                    }
-                  }}
-                  title={coords ? `Click to view ${country} on map` : undefined}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-white text-sm font-semibold">{country}</span>
-                    <span className="text-[#FDB913] font-black">{count}</span>
+              {globalStats.countries.map(([country, count]) => {
+                const coords = countryCoordinates[country];
+                return (
+                  <div
+                    key={country}
+                    className="bg-[#003366]/40 p-3 rounded-lg hover:bg-[#003366]/60 transition-colors cursor-pointer"
+                    onClick={() => {
+                      if (coords) {
+                        setFlyToLocation(coords);
+                      }
+                    }}
+                    title={coords ? `Click to view ${country} on map` : undefined}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-white text-sm font-semibold">{country}</span>
+                      <span className="text-[#FDB913] font-black">{count}</span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>

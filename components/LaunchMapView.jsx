@@ -1,13 +1,88 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from 'react-leaflet';
-import { Rocket, MapPin, CheckCircle, Clock, TrendingUp, Globe } from 'lucide-react';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { Rocket, MapPin, CheckCircle, Clock, TrendingUp, Globe, Printer } from 'lucide-react';
+import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import PrintableMapView from './PrintableMapView';
+import SwimmingTurtle from './SwimmingTurtle';
 
 /**
  * Launch Map View Component
  * Displays an interactive world map showing launch site locations
  * with statistics and filtering capabilities
  */
+
+// Ocean swimming paths for animated turtles
+const oceanPaths = {
+  atlanticNorth: [
+    [35, -70], [32, -60], [30, -50], [28, -40], [30, -30], [33, -35], [35, -45], [37, -55], [35, -70]
+  ],
+  atlanticSouth: [
+    [-5, -30], [-10, -25], [-15, -20], [-20, -15], [-25, -20], [-20, -25], [-15, -28], [-10, -32], [-5, -30]
+  ],
+  pacificNorth: [
+    [25, -160], [20, -150], [15, -140], [10, -135], [5, -140], [10, -150], [15, -158], [20, -165], [25, -160]
+  ],
+  pacificSouth: [
+    [-10, -150], [-15, -145], [-20, -140], [-25, -145], [-30, -150], [-25, -155], [-20, -158], [-15, -155], [-10, -150]
+  ],
+  indian: [
+    [-10, 70], [-12, 80], [-15, 85], [-18, 90], [-20, 85], [-18, 75], [-15, 70], [-12, 65], [-10, 70]
+  ]
+};
+
+// Fun facts about space and ocean
+const turtleFacts = [
+  "🐢 Did you know? Sea turtles can hold their breath for up to 7 hours while resting!",
+  "🚀 Space and ocean have something in common - both are vast frontiers to explore!",
+  "🐢 Real sea turtles navigate using Earth's magnetic field, just like rockets use guidance systems!",
+  "🌊 The ocean covers 71% of Earth's surface - imagine viewing it from space!",
+  "🛰️ Satellites help scientists track sea turtle migration patterns across the oceans!",
+  "🐢 Some sea turtles travel over 10,000 miles each year - that's farther than most rockets!",
+  "🌍 Both astronauts and sea turtles need special equipment to survive in their environments!",
+  "🚀 Just like rockets launch from Earth, baby sea turtles launch from beaches into the ocean!",
+  "🐢 Sea turtles have been around for 110 million years - they're older than rockets by a long shot!",
+  "⭐ From space, you can see the trails that sea turtles leave in the ocean!"
+];
+
+// Swimming turtle configurations
+const swimmingTurtles = [
+  {
+    id: 1,
+    path: oceanPaths.atlanticNorth,
+    speed: 2000,
+    color: 0, // Original color
+    fact: turtleFacts[0]
+  },
+  {
+    id: 2,
+    path: oceanPaths.pacificNorth,
+    speed: 2500,
+    color: 120, // Green
+    fact: turtleFacts[1]
+  },
+  {
+    id: 3,
+    path: oceanPaths.indian,
+    speed: 1800,
+    color: 240, // Blue
+    fact: turtleFacts[2]
+  },
+  {
+    id: 4,
+    path: oceanPaths.pacificSouth,
+    speed: 2200,
+    color: 180, // Cyan
+    fact: turtleFacts[3]
+  },
+  {
+    id: 5,
+    path: oceanPaths.atlanticSouth,
+    speed: 1900,
+    color: 300, // Magenta
+    fact: turtleFacts[4]
+  }
+];
 
 const LaunchMapView = ({ launches, onSiteFilter, yearFilter, view }) => {
   const [selectedSite, setSelectedSite] = useState(null);
@@ -100,33 +175,48 @@ const LaunchMapView = ({ launches, onSiteFilter, yearFilter, view }) => {
     };
   }, [siteData]);
 
-  // Determine marker size and color based on launch count
-  const getMarkerStyle = (site) => {
-    const count = site.total;
-    let radius, color, fillOpacity;
+  // Create custom turtle marker icon
+  const createTurtleMarker = (site) => {
+    const { size, colorClass, hueRotate } = getTurtleSize(site.total);
+    const hasPulse = site.upcoming > 0;
 
+    return L.divIcon({
+      html: `
+        <div class="turtle-marker-wrapper" style="width: ${size}px; height: ${size}px;">
+          <div class="turtle-marker ${colorClass}"
+               style="
+                 width: ${size}px;
+                 height: ${size}px;
+                 background-image: url(/images/space-turtle-banner.png);
+                 background-size: ${size * 1.2}px;
+                 background-position: center 30%;
+                 background-repeat: no-repeat;
+                 filter: hue-rotate(${hueRotate}deg) saturate(1.3) brightness(1.1);
+                 border-radius: 50%;
+               ">
+          </div>
+          <span class="turtle-marker-badge">${site.total}</span>
+          ${hasPulse ? '<span class="pulse-ring"></span>' : ''}
+        </div>
+      `,
+      iconSize: [size, size],
+      iconAnchor: [size / 2, size / 2],
+      popupAnchor: [0, -size / 2],
+      className: 'custom-turtle-icon'
+    });
+  };
+
+  const getTurtleSize = (count) => {
     if (count >= 20) {
-      radius = 25;
-      color = '#ef4444'; // red
-      fillOpacity = 0.7;
-    } else if (count >= 10) {
-      radius = 18;
-      color = '#f97316'; // orange
-      fillOpacity = 0.65;
-    } else if (count >= 5) {
-      radius = 12;
-      color = '#FDB913'; // yellow
-      fillOpacity = 0.6;
-    } else {
-      radius = 8;
-      color = '#6BA539'; // green
-      fillOpacity = 0.55;
+      return { size: 90, colorClass: 'red', hueRotate: 340 };
     }
-
-    // Add pulse for sites with upcoming launches
-    const className = site.upcoming > 0 ? 'pulse-marker' : '';
-
-    return { radius, color, fillOpacity, className };
+    if (count >= 10) {
+      return { size: 70, colorClass: 'orange', hueRotate: 20 };
+    }
+    if (count >= 5) {
+      return { size: 55, colorClass: 'yellow', hueRotate: 40 };
+    }
+    return { size: 40, colorClass: 'green', hueRotate: 120 };
   };
 
   return (
@@ -143,6 +233,15 @@ const LaunchMapView = ({ launches, onSiteFilter, yearFilter, view }) => {
       {/* Stats Sidebar */}
       <div className="hidden lg:block w-80 bg-gradient-to-br from-white/20 to-[#2B8C74]/40 backdrop-blur-md rounded-2xl p-6 overflow-y-auto shadow-2xl border-2 border-[#6BA539]/30">
         <div className="space-y-6">
+          {/* Print Button */}
+          <button
+            onClick={() => window.print()}
+            className="w-full bg-gradient-to-r from-[#F7941D] to-[#FDB913] text-[#003366] font-black py-3 px-4 rounded-xl shadow-lg flex items-center justify-center gap-2 hover:shadow-xl transition-all"
+          >
+            <Printer className="w-5 h-5" />
+            Print Worksheet
+          </button>
+
           <div>
             <h3 className="text-2xl font-black text-white mb-4 flex items-center gap-2">
               <Globe className="w-6 h-6 text-[#FDB913]" />
@@ -222,19 +321,11 @@ const LaunchMapView = ({ launches, onSiteFilter, yearFilter, view }) => {
 
           {/* Render launch site markers */}
           {siteData.map((site) => {
-            const style = getMarkerStyle(site);
-
             return (
-              <CircleMarker
+              <Marker
                 key={site.name}
-                center={[site.lat, site.lng]}
-                radius={style.radius}
-                pathOptions={{
-                  color: '#fff',
-                  weight: 3,
-                  fillColor: style.color,
-                  fillOpacity: style.fillOpacity
-                }}
+                position={[site.lat, site.lng]}
+                icon={createTurtleMarker(site)}
                 eventHandlers={{
                   click: () => setSelectedSite(site)
                 }}
@@ -301,9 +392,23 @@ const LaunchMapView = ({ launches, onSiteFilter, yearFilter, view }) => {
                     </button>
                   </div>
                 </Popup>
-              </CircleMarker>
+              </Marker>
             );
           })}
+
+          {/* Swimming Turtles - Hidden on mobile for performance */}
+          <div className="hidden md:block">
+            {swimmingTurtles.map(turtle => (
+              <SwimmingTurtle
+                key={turtle.id}
+                path={turtle.path}
+                speed={turtle.speed}
+                turtleId={turtle.id}
+                color={turtle.color}
+                fact={turtle.fact}
+              />
+            ))}
+          </div>
         </MapContainer>
       </div>
 
@@ -331,6 +436,9 @@ const LaunchMapView = ({ launches, onSiteFilter, yearFilter, view }) => {
           margin: 0;
         }
       `}</style>
+
+      {/* Printable Worksheet */}
+      <PrintableMapView siteData={siteData} launches={launches} />
     </div>
   );
 };

@@ -1,6 +1,5 @@
 Feature Requests
 - Add Youtube Video Links to each launch card
-- Add month to the calendar
 - Add goals of the mission?
 
 Map Enhancement Ideas
@@ -11,4 +10,4 @@ Map Enhancement Ideas
 - Print-friendly map for classroom handouts
 
 Bugs
-- Fix Data feed, currently no launches showing 
+ 

@@ -44,6 +44,7 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
   const [displayMode, setDisplayMode] = useState('cards');
   const [showStats, setShowStats] = useState(true);
   const [showEducationalSection, setShowEducationalSection] = useState(false);
+  const [searchExpanded, setSearchExpanded] = useState(false);
 
   // Fetch launch data with caching
   useEffect(() => {
@@ -505,7 +506,7 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
       {/* Unified Filter Bar */}
       <div className="bg-teal-800/50 backdrop-blur-sm border-b border-teal-600/30 sticky top-0 z-30 no-print">
         <div className="max-w-7xl mx-auto px-4 py-3">
-          <div className="flex flex-wrap items-center gap-2 md:gap-3">
+          <div className="flex items-center gap-2">
             {/* Upcoming/Past Toggle */}
             <div className="flex bg-teal-900/50 rounded-lg p-1">
               <button
@@ -530,44 +531,39 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
               </button>
             </div>
 
-            {/* Year Filter */}
+            {/* Date Filter (Combined Year/Month) */}
             <select
-              value={yearFilter}
-              onChange={(e) => setYearFilter(e.target.value)}
+              value={monthFilter !== 'all' ? monthFilter : yearFilter !== 'all' ? yearFilter : 'all'}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === 'all') {
+                  setYearFilter('all');
+                  setMonthFilter('all');
+                } else if (val.includes('-')) {
+                  setMonthFilter(val);
+                  setYearFilter('all');
+                } else {
+                  setYearFilter(val);
+                  setMonthFilter('all');
+                }
+              }}
               className="bg-teal-900/50 text-white text-sm px-3 py-2 rounded border border-teal-600 hover:border-yellow-400/50 focus:outline-none focus:border-yellow-400 transition-colors"
             >
-              <option value="all">All Years</option>
-              {filterOptions.years.map(year => (
-                <option key={year} value={year}>{year}</option>
-              ))}
-            </select>
-
-            {/* Month Filter */}
-            <select
-              value={monthFilter}
-              onChange={(e) => setMonthFilter(e.target.value)}
-              className="bg-teal-900/50 text-white text-sm px-3 py-2 rounded border border-teal-600 hover:border-yellow-400/50 focus:outline-none focus:border-yellow-400 transition-colors"
-            >
-              <option value="all">All Months</option>
-              {filterOptions.months.map(month => {
-                const [year, monthNum] = month.split('-');
-                const monthName = new Date(year, parseInt(monthNum) - 1, 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-                return (
-                  <option key={month} value={month}>{monthName}</option>
-                );
-              })}
-            </select>
-
-            {/* Rocket Filter */}
-            <select
-              value={rocketFilter}
-              onChange={(e) => setRocketFilter(e.target.value)}
-              className="bg-teal-900/50 text-white text-sm px-3 py-2 rounded border border-teal-600 hover:border-yellow-400/50 focus:outline-none focus:border-yellow-400 transition-colors"
-            >
-              <option value="all">All Rockets</option>
-              {filterOptions.rockets.map(rocket => (
-                <option key={rocket} value={rocket}>{rocket}</option>
-              ))}
+              <option value="all">📅 Date</option>
+              <optgroup label="Years">
+                {filterOptions.years.map(year => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
+              </optgroup>
+              <optgroup label="Months">
+                {filterOptions.months.map(month => {
+                  const [year, monthNum] = month.split('-');
+                  const monthName = new Date(year, parseInt(monthNum) - 1, 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                  return (
+                    <option key={month} value={month}>{monthName}</option>
+                  );
+                })}
+              </optgroup>
             </select>
 
             {/* Provider Filter */}
@@ -576,9 +572,21 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
               onChange={(e) => setProviderFilter(e.target.value)}
               className="bg-teal-900/50 text-white text-sm px-3 py-2 rounded border border-teal-600 hover:border-yellow-400/50 focus:outline-none focus:border-yellow-400 transition-colors"
             >
-              <option value="all">All Providers</option>
+              <option value="all">🚀 Provider</option>
               {filterOptions.providers.map(provider => (
                 <option key={provider} value={provider}>{provider}</option>
+              ))}
+            </select>
+
+            {/* Rocket Filter */}
+            <select
+              value={rocketFilter}
+              onChange={(e) => setRocketFilter(e.target.value)}
+              className="bg-teal-900/50 text-white text-sm px-3 py-2 rounded border border-teal-600 hover:border-yellow-400/50 focus:outline-none focus:border-yellow-400 transition-colors"
+            >
+              <option value="all">🛰️ Rocket</option>
+              {filterOptions.rockets.map(rocket => (
+                <option key={rocket} value={rocket}>{rocket}</option>
               ))}
             </select>
 
@@ -588,43 +596,54 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
               onChange={(e) => setMissionTypeFilter(e.target.value)}
               className="bg-teal-900/50 text-white text-sm px-3 py-2 rounded border border-teal-600 hover:border-yellow-400/50 focus:outline-none focus:border-yellow-400 transition-colors"
             >
-              <option value="all">All Missions</option>
+              <option value="all">🎯 Mission</option>
               {filterOptions.missionTypes.map(type => (
                 <option key={type} value={type}>{type}</option>
               ))}
             </select>
 
-            {/* Program Filter (if available) */}
-            {filterOptions.programs.length > 0 && (
-              <select
-                value={programFilter}
-                onChange={(e) => setProgramFilter(e.target.value)}
-                className="bg-teal-900/50 text-white text-sm px-3 py-2 rounded border border-teal-600 hover:border-yellow-400/50 focus:outline-none focus:border-yellow-400 transition-colors"
-              >
-                <option value="all">All Programs</option>
-                {filterOptions.programs.map(program => (
-                  <option key={program} value={program}>{program}</option>
-                ))}
-              </select>
-            )}
+            <div className="flex-1"></div>
 
-            {/* Search */}
-            <div className="flex-1 min-w-[180px] relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60" />
-              <input
-                type="text"
-                placeholder="Search missions..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-teal-900/50 text-white text-sm pl-10 pr-3 py-2 rounded border border-teal-600 hover:border-yellow-400/50 focus:outline-none focus:border-yellow-400 placeholder-white/40 transition-colors"
-              />
-            </div>
+            {/* Expandable Search */}
+            {searchExpanded ? (
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60" />
+                  <input
+                    type="text"
+                    placeholder="Search launches..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    autoFocus
+                    className="w-64 bg-teal-900/50 text-white text-sm pl-10 pr-3 py-2 rounded border border-teal-600 hover:border-yellow-400/50 focus:outline-none focus:border-yellow-400 placeholder-white/40 transition-colors"
+                  />
+                </div>
+                <button
+                  onClick={() => {
+                    setSearchExpanded(false);
+                    setSearchQuery('');
+                  }}
+                  className="p-2 text-white/60 hover:text-white hover:bg-teal-900/50 rounded transition-colors"
+                  title="Close search"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setSearchExpanded(true)}
+                className="p-2 text-white/60 hover:text-yellow-400 hover:bg-teal-900/50 rounded transition-colors"
+                title="Search launches"
+              >
+                <Search className="w-5 h-5" />
+              </button>
+            )}
 
             {/* Clear Filters */}
             {activeFilterCount > 0 && (
               <button
                 onClick={clearAllFilters}
-                className="px-3 py-2 text-sm text-red-300 hover:text-red-200 hover:bg-red-900/20 rounded flex items-center gap-1 transition-colors"
+                className="px-3 py-2 text-sm text-red-300 hover:text-red-200 hover:bg-red-900/20 rounded flex items-center gap-1 transition-colors whitespace-nowrap"
               >
                 <X className="w-4 h-4" />
                 Clear ({activeFilterCount})

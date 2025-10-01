@@ -78,6 +78,7 @@ sea-turtle-space-tracker/
 ├── components/
 │   ├── SeaTurtleSpaceTrackerEnhanced.jsx    # Main app component
 │   ├── LaunchMapView.jsx                    # Interactive world map
+│   ├── LaunchDetailModal.jsx                # Launch detail popups
 │   ├── PrintableMapView.jsx                 # Classroom worksheets
 │   └── SwimmingTurtle.jsx                   # Educational animations
 ├── pages/
@@ -198,5 +199,5 @@ Built with ❤️ for the Sea Turtles of PVPV/Rawlings Elementary School
 
 ---
 
-**Last Updated**: September 30, 2025
-**Version**: 3.0 - Enhanced with global launch data and advanced search
+**Last Updated**: October 1, 2025
+**Version**: 3.1 - Enhanced with launch detail modals and refined UI

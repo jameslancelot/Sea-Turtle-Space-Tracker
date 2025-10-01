@@ -32,7 +32,7 @@ The **Sea Turtle Space Tracker** is an educational web application designed for 
 ## Project Structure
 
 **Key Files:**
-- `/components/`: React components (main, map, print, swimming turtle)
+- `/components/`: React components (main, map, modal, print, swimming turtle)
 - `/pages/api/spacex.js`: API proxy for Launch Library 2
 - `/public/images/`: Logos and turtle markers
 - `/styles/globals.css`: Custom animations and print styles
@@ -59,6 +59,9 @@ The **Sea Turtle Space Tracker** is an educational web application designed for 
   - Print worksheet generation with QR codes
   - Interactive statistics and filtering
   - Mobile-responsive design
+
+### Modal Components:
+- **`LaunchDetailModal.jsx`**: Detailed launch information popup with enhanced mission data, provider details, and media links
 
 ### Educational Components:
 - **`PrintableMapView.jsx`**: Classroom worksheet with activities, discussion questions, and QR code for digital access

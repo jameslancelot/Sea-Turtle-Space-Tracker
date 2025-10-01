@@ -3,10 +3,12 @@ import {
   Rocket, Calendar, Clock, MapPin, Globe, Filter, Search, Grid3x3,
   ChevronDown, X, CheckCircle, XCircle, AlertCircle, Loader, ExternalLink,
   BarChart2, Shell, TrendingUp, Eye, EyeOff, Table, Download, Waves, Star,
-  Palmtree, Fish, Anchor, Zap, Printer, Map
+  Palmtree, Fish, Anchor, Zap, Printer, Map, Share2
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/router';
 import LaunchDetailModal from './LaunchDetailModal';
+import { useURLState } from '../hooks/useURLState';
 
 // Dynamically import LaunchMapView to avoid SSR issues with Leaflet
 const LaunchMapView = dynamic(() => import('./LaunchMapView'), {
@@ -45,10 +47,14 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
   const [displayMode, setDisplayMode] = useState('cards');
   const [showStats, setShowStats] = useState(true);
   const [showEducationalSection, setShowEducationalSection] = useState(false);
+  const [showShareSuccess, setShowShareSuccess] = useState(false);
 
   // Modal states
   const [selectedLaunch, setSelectedLaunch] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Router for URL state management
+  const router = useRouter();
 
   // Fetch launch data with caching
   useEffect(() => {
@@ -214,6 +220,37 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
     return { rockets, programs, providers, missionTypes, years, months };
   }, [launches]);
 
+  // URL state synchronization for shareable links
+  const { getShareableURL } = useURLState(
+    {
+      setView,
+      setDisplayMode,
+      setYearFilter,
+      setMonthFilter,
+      setRocketFilter,
+      setMissionTypeFilter,
+      setProgramFilter,
+      setProviderFilter,
+      setSearchQuery,
+      setSiteFilter,
+      setShowStats
+    },
+    {
+      view,
+      displayMode,
+      yearFilter,
+      monthFilter,
+      rocketFilter,
+      missionTypeFilter,
+      programFilter,
+      providerFilter,
+      searchQuery,
+      siteFilter,
+      showStats
+    },
+    filterOptions
+  );
+
   // Filter launches
   const filteredLaunches = useMemo(() => {
     return launches.filter(launch => {
@@ -308,6 +345,11 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
     setProviderFilter('all');
     setMissionTypeFilter('all');
     setSearchQuery('');
+    setSiteFilter(null);
+    // Clear URL parameters
+    if (router) {
+      router.push(router.pathname, undefined, { shallow: true });
+    }
   };
 
   const activeFilterCount = [
@@ -341,6 +383,26 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleShare = async () => {
+    try {
+      const shareURL = getShareableURL();
+      await navigator.clipboard.writeText(shareURL);
+      setShowShareSuccess(true);
+      setTimeout(() => setShowShareSuccess(false), 3000);
+    } catch (err) {
+      console.error('Failed to copy link:', err);
+      // Fallback: create temporary input and select text
+      const input = document.createElement('input');
+      input.value = getShareableURL();
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand('copy');
+      document.body.removeChild(input);
+      setShowShareSuccess(true);
+      setTimeout(() => setShowShareSuccess(false), 3000);
+    }
   };
 
   if (loading) {
@@ -458,6 +520,18 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
                 title="Print View"
               >
                 <Printer className="w-5 h-5" />
+              </button>
+              <button
+                onClick={handleShare}
+                className="p-2 text-yellow-300 hover:bg-teal-700/50 rounded transition-all relative"
+                title="Copy Shareable Link"
+              >
+                <Share2 className="w-5 h-5" />
+                {showShareSuccess && (
+                  <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-green-500 text-white text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap shadow-lg animate-pulse">
+                    Link Copied! 🐢
+                  </span>
+                )}
               </button>
             </div>
           </div>

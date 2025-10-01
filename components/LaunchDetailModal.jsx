@@ -443,12 +443,12 @@ const LaunchDetailModal = ({ launch, isOpen, onClose }) => {
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 animate-fade-in modal-backdrop"
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998] animate-fade-in modal-backdrop"
         onClick={onClose}
       />
 
       {/* Modal Container */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none">
         <div
           className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden pointer-events-auto transform animate-scale-in modal-container"
           onClick={(e) => e.stopPropagation()}

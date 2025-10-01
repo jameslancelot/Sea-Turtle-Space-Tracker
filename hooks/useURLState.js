@@ -21,6 +21,7 @@ export const useURLState = (setters, currentState, validOptions) => {
   const isInitialized = useRef(false);
   const isUpdatingFromURL = useRef(false);
   const searchDebounceTimer = useRef(null);
+  const previousSearchQuery = useRef(currentState.searchQuery);
 
   /**
    * Initialize state from URL parameters on mount
@@ -83,7 +84,6 @@ export const useURLState = (setters, currentState, validOptions) => {
     };
 
     // Debounce search query changes (300ms), update others immediately
-    const previousSearchQuery = useRef(currentState.searchQuery);
     const searchQueryChanged = previousSearchQuery.current !== currentState.searchQuery;
     previousSearchQuery.current = currentState.searchQuery;
 

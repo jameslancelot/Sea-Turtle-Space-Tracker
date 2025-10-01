@@ -6,6 +6,7 @@ import {
   Palmtree, Fish, Anchor, Zap, Printer, Map
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import LaunchDetailModal from './LaunchDetailModal';
 
 // Dynamically import LaunchMapView to avoid SSR issues with Leaflet
 const LaunchMapView = dynamic(() => import('./LaunchMapView'), {
@@ -44,6 +45,10 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
   const [displayMode, setDisplayMode] = useState('cards');
   const [showStats, setShowStats] = useState(true);
   const [showEducationalSection, setShowEducationalSection] = useState(false);
+
+  // Modal states
+  const [selectedLaunch, setSelectedLaunch] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Fetch launch data with caching
   useEffect(() => {
@@ -698,7 +703,11 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
                 {filteredLaunches.map(launch => (
                   <div
                     key={launch.id}
-                    className="bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden hover:bg-white/20 transition-all border border-white/20 hover:border-yellow-400/50 group"
+                    onClick={() => {
+                      setSelectedLaunch(launch);
+                      setIsModalOpen(true);
+                    }}
+                    className="bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden hover:bg-white/20 transition-all border border-white/20 hover:border-yellow-400/50 group cursor-pointer transform hover:scale-105"
                   >
                     {launch.image && (
                       <div className="h-36 bg-teal-900/50 relative overflow-hidden">
@@ -707,6 +716,26 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
                           alt={launch.name}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                         />
+
+                        {/* VIDEO Badge */}
+                        {(launch.vid_urls?.length > 0 || launch.vidURLs?.length > 0) && (
+                          <div className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1 shadow-lg">
+                            🎥 VIDEO
+                          </div>
+                        )}
+
+                        {/* LIVE Badge */}
+                        {launch.webcast_live && (
+                          <div className="absolute bottom-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1 animate-pulse shadow-lg">
+                            <span className="relative flex h-2 w-2">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                            </span>
+                            LIVE
+                          </div>
+                        )}
+
+                        {/* Status Badge */}
                         <div className="absolute top-2 right-2 bg-teal-900/80 backdrop-blur-sm rounded-full p-1.5">
                           {isUpcoming(launch) ? (
                             <Clock className="w-4 h-4 text-yellow-400" />
@@ -785,8 +814,24 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
                     </thead>
                     <tbody className="divide-y divide-teal-700/30">
                       {filteredLaunches.map(launch => (
-                        <tr key={launch.id} className="hover:bg-white/5 transition-colors">
-                          <td className="p-3 text-white font-medium">{launch.name}</td>
+                        <tr
+                          key={launch.id}
+                          onClick={() => {
+                            setSelectedLaunch(launch);
+                            setIsModalOpen(true);
+                          }}
+                          className="hover:bg-white/5 transition-colors cursor-pointer"
+                        >
+                          <td className="p-3 text-white font-medium">
+                            {launch.name}
+                            {/* Inline badges for table view */}
+                            {(launch.vid_urls?.length > 0 || launch.vidURLs?.length > 0) && (
+                              <span className="ml-2 text-xs bg-red-600 text-white px-2 py-0.5 rounded-full">🎥</span>
+                            )}
+                            {launch.webcast_live && (
+                              <span className="ml-2 text-xs bg-red-600 text-white px-2 py-0.5 rounded-full animate-pulse">🔴 LIVE</span>
+                            )}
+                          </td>
                           <td className="p-3 text-cyan-300">{formatDate(launch.net)}</td>
                           <td className="p-3 text-yellow-300">{launch.rocket?.configuration?.name || 'Unknown'}</td>
                           <td className="p-3 text-green-300 max-w-xs truncate">{formatLocation(launch)}</td>
@@ -874,6 +919,13 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
           </div>
         )}
       </div>
+
+      {/* Launch Detail Modal */}
+      <LaunchDetailModal
+        launch={selectedLaunch}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
 
       {/* Print Footer */}
       <div className="print-footer hidden">

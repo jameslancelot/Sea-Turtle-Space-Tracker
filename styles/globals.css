@@ -551,3 +551,76 @@ html {
     display: none !important;
   }
 }
+
+/* ============================================
+   LAUNCH DETAIL MODAL ANIMATIONS & STYLES
+   ============================================ */
+
+/* Modal fade/scale animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.3s ease-out;
+}
+
+/* Custom scrollbar for modal tabs */
+.mission-tab::-webkit-scrollbar,
+.details-tab::-webkit-scrollbar {
+  width: 8px;
+}
+
+.mission-tab::-webkit-scrollbar-track,
+.details-tab::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.mission-tab::-webkit-scrollbar-thumb,
+.details-tab::-webkit-scrollbar-thumb {
+  background: #14b8a6;
+  border-radius: 4px;
+}
+
+.mission-tab::-webkit-scrollbar-thumb:hover,
+.details-tab::-webkit-scrollbar-thumb:hover {
+  background: #0f766e;
+}
+
+/* Z-index hierarchy for modal */
+.modal-backdrop {
+  z-index: 9998;
+}
+
+.modal-container {
+  z-index: 9999;
+}
+
+/* Hide modal in print view */
+@media print {
+  .modal-backdrop,
+  .modal-container {
+    display: none !important;
+  }
+}

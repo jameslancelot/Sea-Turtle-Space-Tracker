@@ -10,1190 +10,634 @@ This document outlines the comprehensive plan to enhance the interactive map fea
 
 ---
 
-## 🎯 Feature Overview
+## 🎯 Planned Features Overview
 
 | Feature | Educational Value | Engagement | Complexity | Status |
 |---------|------------------|------------|------------|---------|
-| Custom Turtle Markers | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | 🔧🔧 MEDIUM | ✅ COMPLETED |
-| Print Worksheet | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | 🔧🔧 MEDIUM | ✅ COMPLETED |
-| Swimming Turtles | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | 🔧🔧🔧 MEDIUM | ✅ COMPLETED |
+| Launch Detail Modal | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | 🔧🔧🔧 MEDIUM-HIGH | 📋 NEXT |
+| YouTube Integration | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | 🔧🔧🔧 MEDIUM | ⚪ Optional |
 | Time-Lapse Animation | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | 🔧🔧🔧🔧 HIGH | ⚪ Future |
 | Launch Trajectories | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | 🔧🔧🔧🔧 HIGH | ⚪ Future |
 
 ---
 
-## ✅ Recently Completed (February 2025)
+## ✅ Completed Features (Moved to changelog.md)
 
-### Phase 1-2 Implementation Summary
-All major features from Phases 1-2 have been successfully implemented and deployed:
+**Phase 1-2 completed in February 2025:**
+- ✅ Custom turtle marker icons (4 size variations)
+- ✅ Print-friendly map worksheet with QR codes
+- ✅ Swimming animated turtles with educational facts
 
-**Completion Date**: February 2025
-**Git Commit**: `1f2005b feat: Add interactive turtle markers, print worksheet, and swimming animations`
-**Deployment**: Live on Vercel production
-
-**Key Achievements**:
-- ✅ Custom turtle markers replace circle markers with 4 size variations
-- ✅ Print worksheet with educational activities and QR code
-- ✅ 5 swimming animated turtles across ocean paths
-- ✅ Mobile responsive design (turtles disabled on mobile for performance)
-- ✅ New dependency: qrcode.react for worksheet URLs
+**See full implementation details in:** `/docs/changelog.md` - Version 3.1
 
 ---
 
-## 📋 Phase 1: Brand & Education (COMPLETED ✅)
+## 📋 Phase 3: Launch Detail Modal System (NEXT UP)
 
-### Feature 1: Custom Space Turtle Marker Icons
+### Overview
 
-**Current State**: Generic colored circles (CircleMarker)
-**Goal**: Branded sea turtle astronaut markers reinforcing school mascot
+**Goal**: Transform launch cards from static displays into interactive detail views with rich mission content, video integration, and educational features.
 
-#### Design Approach: Sprite-Based Implementation
+**Status**: Ready to implement after Phase 1-2 completion
+**Educational Priority**: ⭐⭐⭐⭐⭐ (Highest impact for learning)
+**Engagement Priority**: ⭐⭐⭐⭐⭐ (Students want more detail!)
 
-**Strategy**: Extract turtle from existing `space-turtle-banner.png` and create retro sprite-based markers
-
-**Advantages**:
-- ✅ Uses existing brand asset
-- ✅ Retro/pixel-art aesthetic appeals to kids
-- ✅ Minimal file size (<10KB for all sizes)
-- ✅ Quick implementation
-- ✅ No SVG complexity
-
-**Fallback**: If PNG extraction fails, use emoji-based markers (🐢 + 🪐)
-
-#### Size Variations
-
-4 distinct sizes based on launch frequency:
-
-```javascript
-const markerSizes = {
-  small: { width: 40, height: 40, launches: '1-4' },    // Green turtle
-  medium: { width: 55, height: 55, launches: '5-9' },   // Yellow turtle
-  large: { width: 70, height: 70, launches: '10-19' },  // Orange turtle
-  xlarge: { width: 90, height: 90, launches: '20+' }    // Red turtle
-};
-```
-
-#### Number Badges
-
-Each turtle displays launch count in a badge:
-
-```css
-.turtle-marker-badge {
-  position: absolute;
-  bottom: -5px;
-  right: -5px;
-  background: linear-gradient(135deg, #F7941D, #FDB913);
-  color: #003366;
-  font-weight: 900;
-  border-radius: 50%;
-  padding: 4px 8px;
-  font-size: 12px;
-  border: 2px solid white;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-}
-```
-
-#### Implementation Code
-
-**File**: `/components/LaunchMapView.jsx`
-
-```javascript
-// Replace CircleMarker with custom DivIcon
-const createTurtleMarker = (site) => {
-  const { size, color } = getTurtleSize(site.total);
-
-  const turtleIcon = L.divIcon({
-    html: `
-      <div class="turtle-marker-wrapper" style="width: ${size}px; height: ${size}px;">
-        <div class="turtle-marker ${color}"
-             style="background-image: url(/images/space-turtle-marker.png)">
-        </div>
-        <span class="turtle-marker-badge">${site.total}</span>
-        ${site.upcoming > 0 ? '<span class="pulse-ring"></span>' : ''}
-      </div>
-    `,
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2],
-    className: 'custom-turtle-icon'
-  });
-
-  return turtleIcon;
-};
-
-const getTurtleSize = (count) => {
-  if (count >= 20) return { size: 90, color: 'red' };
-  if (count >= 10) return { size: 70, color: 'orange' };
-  if (count >= 5) return { size: 55, color: 'yellow' };
-  return { size: 40, color: 'green' };
-};
-
-// Replace CircleMarker rendering
-return (
-  <Marker
-    key={site.name}
-    position={[site.lat, site.lng]}
-    icon={createTurtleMarker(site)}
-    eventHandlers={{
-      click: () => setSelectedSite(site)
-    }}
-  >
-    <Popup>{/* existing popup content */}</Popup>
-  </Marker>
-);
-```
-
-**CSS Additions** (`/styles/globals.css`):
-
-```css
-/* Custom Turtle Markers */
-.turtle-marker-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.turtle-marker {
-  width: 100%;
-  height: 100%;
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  transition: transform 0.3s ease;
-}
-
-.turtle-marker:hover {
-  transform: scale(1.15) rotate(5deg);
-}
-
-.turtle-marker.red {
-  filter: hue-rotate(340deg) saturate(1.5);
-}
-
-.turtle-marker.orange {
-  filter: hue-rotate(20deg) saturate(1.3);
-}
-
-.turtle-marker.yellow {
-  filter: hue-rotate(40deg) saturate(1.2);
-}
-
-.turtle-marker.green {
-  filter: hue-rotate(120deg) saturate(1.1);
-}
-
-.turtle-marker-badge {
-  position: absolute;
-  bottom: -5px;
-  right: -5px;
-  background: linear-gradient(135deg, #F7941D, #FDB913);
-  color: #003366;
-  font-weight: 900;
-  border-radius: 50%;
-  padding: 4px 8px;
-  font-size: 12px;
-  border: 2px solid white;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-  z-index: 1000;
-}
-
-/* Pulse ring for upcoming launches */
-.pulse-ring {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100%;
-  height: 100%;
-  border: 3px solid #FDB913;
-  border-radius: 50%;
-  animation: pulse-ring 2s ease-out infinite;
-  pointer-events: none;
-}
-
-@keyframes pulse-ring {
-  0% {
-    transform: translate(-50%, -50%) scale(0.8);
-    opacity: 1;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(1.8);
-    opacity: 0;
-  }
-}
-```
-
-#### Educational Value
-- **Visual Literacy**: Size = more launches (bigger turtle = busier site)
-- **Pattern Recognition**: Colors indicate activity levels
-- **Brand Connection**: School mascot throughout learning experience
-- **Engagement**: Students excited to find "the biggest turtle!"
-
-**Time Estimate**: 4-6 hours
+**Key Benefits**:
+- Deep dive into individual missions
+- Video content for visual learners
+- Live launch awareness
+- Rich educational content
+- No database required (API-powered)
 
 ---
 
-### Feature 2: Print-Friendly Map Worksheet
+### Feature 6: Interactive Launch Detail Modal
 
-**Goal**: Transform interactive map into printable classroom handout
+**Goal**: Click any launch card to open detailed modal with tabs for Video, Mission Info, and Technical Details
 
-**Target**: Standard 8.5" x 11" letter paper, black & white or color printing
+#### Modal Architecture
 
-#### Layout Design
+**UX Pattern**: Centered overlay modal with backdrop blur, tabbed interface
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  [Logo]  🐢 PVPV RAWLINGS ELEMENTARY SPACE TRACKER          │
-│                Launch Sites Around the World                │
-│                Generated: February 15, 2025                 │
-├─────────────────────────────────────────────────────────────┤
+│  ✕                  [Launch Name]                          │
+│  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │
 │                                                             │
-│                    [STATIC MAP VIEW]                        │
+│  [🎥 Video] [📋 Mission] [🔧 Details]  ← Tabs             │
 │                                                             │
-│  Legend:                                                    │
-│  🔴 Very Active (20+ launches)  🟠 Active (10-19)          │
-│  🟡 Moderate (5-9)  🟢 New (1-4)                           │
+│  ┌─────────────────────────────────────────────────────┐  │
+│  │                                                       │  │
+│  │              TAB CONTENT AREA                        │  │
+│  │                                                       │  │
+│  │  - Video player or thumbnail                         │  │
+│  │  - Mission description                               │  │
+│  │  - Technical specifications                          │  │
+│  │  - Kid-friendly explanations                         │  │
+│  │  - Fun facts                                         │  │
+│  │                                                       │  │
+│  └─────────────────────────────────────────────────────┘  │
 │                                                             │
-├─────────────────────────────────────────────────────────────┤
-│  📊 TOP 10 BUSIEST LAUNCH SITES                            │
-│                                                             │
-│  1. Kennedy Space Center, USA............47 launches       │
-│  2. Cape Canaveral SFS, USA..............38 launches       │
-│  3. Vandenberg SFB, USA..................29 launches       │
-│  4. Jiuquan, China.......................24 launches       │
-│  5. Baikonur Cosmodrome, Kazakhstan......22 launches       │
-│  6. Xichang, China.......................19 launches       │
-│  7. Taiyuan, China.......................15 launches       │
-│  8. Rocket Lab LC-1, New Zealand.........14 launches       │
-│  9. Satish Dhawan, India.................12 launches       │
-│  10. Tanegashima, Japan..................10 launches       │
-│                                                             │
-├─────────────────────────────────────────────────────────────┤
-│  🎯 STUDENT ACTIVITIES                                      │
-│                                                             │
-│  Name: _____________________  Date: ___________            │
-│                                                             │
-│  □ 1. Find and circle the launch site closest to Florida   │
-│                                                             │
-│  □ 2. Which country has the most launch sites?             │
-│      Answer: _________________________________              │
-│                                                             │
-│  □ 3. Use crayons to color each continent a different      │
-│      color on the map above                                │
-│                                                             │
-│  □ 4. Count how many launch sites are located on or near   │
-│      coastlines vs. inland: Coastal:___ Inland:___         │
-│                                                             │
-│  □ 5. Using a ruler, draw a line from Kennedy Space Center │
-│      to the farthest launch site. Which site is it?        │
-│      Answer: _________________________________              │
-│                                                             │
-│  💭 DISCUSSION QUESTIONS                                    │
-│                                                             │
-│  1. Why do you think so many launch sites are located      │
-│     near coastlines or oceans?                             │
-│     _________________________________________________       │
-│     _________________________________________________       │
-│                                                             │
-│  2. If you could watch a rocket launch from any site on    │
-│     this map, which would you choose and why?              │
-│     _________________________________________________       │
-│     _________________________________________________       │
-│                                                             │
-│  3. How do you think scientists decide where to build      │
-│     a new launch site?                                     │
-│     _________________________________________________       │
-│     _________________________________________________       │
-│                                                             │
-├─────────────────────────────────────────────────────────────┤
-│  [QR CODE]  Scan this code with a tablet or phone to       │
-│             explore the interactive map online!            │
-│                                                             │
-│  🐢 "Surfing to Success - From the Ocean to the Stars!"    │
+│              [🔗 Watch Live] [📊 Infographic]              │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-#### Implementation Code
+#### Tab 1: Video Content
 
-**File**: `/components/PrintableMapView.jsx` (NEW)
+**Priority Features**:
 
+1. **YouTube Thumbnail Preview** (Lazy Load)
 ```javascript
-import React from 'react';
-import { QRCodeSVG } from 'qrcode.react';
-
-const PrintableMapView = ({ siteData, launches }) => {
-  const topSites = siteData
-    .sort((a, b) => b.total - a.total)
-    .slice(0, 10);
-
-  const totalLaunches = siteData.reduce((sum, site) => sum + site.total, 0);
-  const countries = getCountryStats(siteData);
+const VideoTab = ({ launch }) => {
+  const [videoLoaded, setVideoLoaded] = useState(false);
+  const videoUrl = launch.vidURLs?.[0]; // From Launch Library 2 API
+  const videoId = extractYouTubeId(videoUrl);
 
   return (
-    <div className="print-only">
-      {/* Header */}
-      <div className="print-header">
-        <img
-          src="/images/space-turtle-logo.png"
-          alt="Space Turtle"
-          className="print-logo"
-        />
-        <h1>PVPV Rawlings Elementary Space Tracker</h1>
-        <h2>Launch Sites Around the World</h2>
-        <p className="print-date">
-          Generated: {new Date().toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-          })}
-        </p>
-        <p className="print-stats">
-          Total Sites: {siteData.length} | Total Launches Tracked: {totalLaunches}
-        </p>
-      </div>
-
-      {/* Map will be visible here - existing MapContainer */}
-
-      {/* Legend */}
-      <div className="print-legend">
-        <h3>Map Legend</h3>
-        <div className="legend-items">
-          <div className="legend-item">
-            <span className="legend-dot red"></span>
-            <span>Very Active (20+ launches)</span>
+    <div className="video-tab">
+      {videoUrl ? (
+        videoLoaded ? (
+          <iframe
+            src={`https://www.youtube.com/embed/${videoId}`}
+            className="w-full aspect-video rounded-lg"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        ) : (
+          <div
+            onClick={() => setVideoLoaded(true)}
+            className="cursor-pointer relative group"
+          >
+            <img
+              src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`}
+              alt="Video thumbnail"
+              className="w-full aspect-video rounded-lg"
+            />
+            <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/40 transition">
+              <button className="bg-[#F7941D] hover:bg-[#FDB913] text-white font-black text-2xl py-6 px-10 rounded-full shadow-2xl transform group-hover:scale-110 transition">
+                ▶ Watch Launch Video
+              </button>
+            </div>
           </div>
-          <div className="legend-item">
-            <span className="legend-dot orange"></span>
-            <span>Active (10-19 launches)</span>
-          </div>
-          <div className="legend-item">
-            <span className="legend-dot yellow"></span>
-            <span>Moderate (5-9 launches)</span>
-          </div>
-          <div className="legend-item">
-            <span className="legend-dot green"></span>
-            <span>New (1-4 launches)</span>
-          </div>
+        )
+      ) : (
+        <div className="no-video-state bg-gradient-to-br from-cyan-50 to-teal-50 p-8 rounded-lg border-2 border-teal-200 text-center">
+          <p className="text-lg text-gray-600 mb-4">
+            🎥 No video available yet for this launch
+          </p>
+          {launch.webcast_live && (
+            <p className="text-sm text-teal-700 font-semibold">
+              Check back during launch time - live stream may become available!
+            </p>
+          )}
         </div>
-      </div>
-
-      {/* Top Sites List */}
-      <div className="print-sites">
-        <h3>📊 Top 10 Busiest Launch Sites</h3>
-        <table className="print-sites-table">
-          <tbody>
-            {topSites.map((site, index) => (
-              <tr key={site.name}>
-                <td className="site-rank">{index + 1}.</td>
-                <td className="site-name">{site.name}</td>
-                <td className="site-dots">{'·'.repeat(30)}</td>
-                <td className="site-count">{site.total} launches</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Student Activities */}
-      <div className="print-activities page-break">
-        <h3>🎯 Student Activities</h3>
-
-        <div className="student-info">
-          <label>Name: <span className="blank-line"></span></label>
-          <label>Date: <span className="blank-line-short"></span></label>
-        </div>
-
-        <div className="activity-checklist">
-          <div className="activity-item">
-            <input type="checkbox" />
-            <label>
-              <strong>1.</strong> Find and circle the launch site closest to Florida on the map
-            </label>
-          </div>
-
-          <div className="activity-item">
-            <input type="checkbox" />
-            <label>
-              <strong>2.</strong> Which country has the most launch sites?
-            </label>
-            <div className="answer-line">
-              Answer: <span className="blank-line"></span>
-            </div>
-          </div>
-
-          <div className="activity-item">
-            <input type="checkbox" />
-            <label>
-              <strong>3.</strong> Use crayons or colored pencils to color each continent
-              a different color on the map above
-            </label>
-          </div>
-
-          <div className="activity-item">
-            <input type="checkbox" />
-            <label>
-              <strong>4.</strong> Count how many launch sites are located on or near coastlines
-              compared to inland locations
-            </label>
-            <div className="answer-line">
-              Coastal: <span className="blank-line-short"></span>
-              Inland: <span className="blank-line-short"></span>
-            </div>
-          </div>
-
-          <div className="activity-item">
-            <input type="checkbox" />
-            <label>
-              <strong>5.</strong> Using a ruler, draw a line from Kennedy Space Center (Florida)
-              to the farthest launch site. Which site is it?
-            </label>
-            <div className="answer-line">
-              Answer: <span className="blank-line"></span>
-            </div>
-          </div>
-        </div>
-
-        {/* Discussion Questions */}
-        <div className="discussion-section">
-          <h4>💭 Discussion Questions</h4>
-
-          <div className="discussion-question">
-            <p><strong>1.</strong> Why do you think so many launch sites are located near
-            coastlines or oceans?</p>
-            <div className="answer-lines">
-              <span className="blank-line-full"></span>
-              <span className="blank-line-full"></span>
-            </div>
-          </div>
-
-          <div className="discussion-question">
-            <p><strong>2.</strong> If you could watch a rocket launch from any site on this map,
-            which would you choose and why?</p>
-            <div className="answer-lines">
-              <span className="blank-line-full"></span>
-              <span className="blank-line-full"></span>
-            </div>
-          </div>
-
-          <div className="discussion-question">
-            <p><strong>3.</strong> How do you think scientists decide where to build a new
-            launch site?</p>
-            <div className="answer-lines">
-              <span className="blank-line-full"></span>
-              <span className="blank-line-full"></span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* QR Code Section */}
-      <div className="print-qr-section">
-        <QRCodeSVG
-          value={typeof window !== 'undefined' ? window.location.href : 'https://sea-turtle-space-tracker.vercel.app'}
-          size={120}
-          level="M"
-          includeMargin={true}
-        />
-        <div className="qr-instructions">
-          <p><strong>Explore the Interactive Map!</strong></p>
-          <p>Scan this code with a tablet or phone to see the map come to life online</p>
-        </div>
-      </div>
-
-      {/* Footer */}
-      <div className="print-footer">
-        <p>🐢 "Surfing to Success - From the Ocean to the Stars!"</p>
-        <p>PVPV Rawlings Elementary School | St. Johns County, Florida</p>
-      </div>
+      )}
     </div>
   );
 };
-
-const getCountryStats = (siteData) => {
-  // Helper function to aggregate by country
-  const countries = {};
-  siteData.forEach(site => {
-    const siteName = site.name.toLowerCase();
-    let country = 'Other';
-
-    if (siteName.includes('usa') || siteName.includes('florida') ||
-        siteName.includes('california') || siteName.includes('texas')) {
-      country = 'USA';
-    } else if (siteName.includes('china')) {
-      country = 'China';
-    } else if (siteName.includes('russia') || siteName.includes('baikonur')) {
-      country = 'Russia/Kazakhstan';
-    }
-    // ... more countries
-
-    countries[country] = (countries[country] || 0) + site.total;
-  });
-  return countries;
-};
-
-export default PrintableMapView;
 ```
 
-**CSS for Printing** (`/styles/globals.css` - additions):
-
-```css
-/* ============================================
-   PRINT STYLES - Map Worksheet
-   ============================================ */
-
-@media print {
-  /* Hide screen-only elements */
-  .no-print,
-  header,
-  nav,
-  .map-controls,
-  .filter-bar,
-  .leaflet-control-container,
-  .timelapse-controls,
-  .swimming-turtle,
-  button,
-  .stats-sidebar {
-    display: none !important;
-  }
-
-  /* Show print-only elements */
-  .print-only {
-    display: block !important;
-  }
-
-  /* Page setup */
-  @page {
-    size: letter portrait;
-    margin: 0.5in;
-  }
-
-  body {
-    background: white !important;
-    color: black !important;
-    font-size: 11pt;
-  }
-
-  /* Print Header */
-  .print-header {
-    text-align: center;
-    margin-bottom: 1rem;
-    padding-bottom: 1rem;
-    border-bottom: 3px solid #14b8a6;
-  }
-
-  .print-logo {
-    width: 80px;
-    height: 80px;
-    margin: 0 auto 0.5rem;
-  }
-
-  .print-header h1 {
-    font-size: 20pt;
-    font-weight: bold;
-    color: #0f766e;
-    margin: 0.25rem 0;
-  }
-
-  .print-header h2 {
-    font-size: 16pt;
-    color: #0e7490;
-    margin: 0.25rem 0;
-  }
-
-  .print-date {
-    font-size: 10pt;
-    color: #475569;
-    margin-top: 0.25rem;
-  }
-
-  .print-stats {
-    font-size: 10pt;
-    font-weight: 600;
-    color: #0f766e;
-    margin-top: 0.5rem;
-  }
-
-  /* Map container for printing */
-  .leaflet-container {
-    height: 400px !important;
-    width: 100% !important;
-    border: 2px solid #14b8a6;
-    margin: 1rem 0;
-    page-break-inside: avoid;
-  }
-
-  /* Legend */
-  .print-legend {
-    margin: 1rem 0;
-    padding: 0.5rem;
-    background: #f0fdfa;
-    border: 1px solid #14b8a6;
-    page-break-inside: avoid;
-  }
-
-  .print-legend h3 {
-    font-size: 12pt;
-    color: #0f766e;
-    margin: 0 0 0.5rem 0;
-  }
-
-  .legend-items {
-    display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
-  }
-
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 9pt;
-  }
-
-  .legend-dot {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    border: 2px solid #333;
-  }
-
-  .legend-dot.red { background: #ef4444; }
-  .legend-dot.orange { background: #f97316; }
-  .legend-dot.yellow { background: #FDB913; }
-  .legend-dot.green { background: #6BA539; }
-
-  /* Top Sites Table */
-  .print-sites {
-    margin: 1rem 0;
-    page-break-inside: avoid;
-  }
-
-  .print-sites h3 {
-    font-size: 13pt;
-    color: #0f766e;
-    margin-bottom: 0.5rem;
-  }
-
-  .print-sites-table {
-    width: 100%;
-    font-size: 10pt;
-    border-collapse: collapse;
-  }
-
-  .print-sites-table tr {
-    page-break-inside: avoid;
-  }
-
-  .site-rank {
-    font-weight: bold;
-    color: #F7941D;
-    width: 30px;
-  }
-
-  .site-name {
-    font-weight: 600;
-    color: #1f2937;
-  }
-
-  .site-dots {
-    color: #d1d5db;
-    letter-spacing: 2px;
-  }
-
-  .site-count {
-    font-weight: bold;
-    color: #0f766e;
-    text-align: right;
-    white-space: nowrap;
-  }
-
-  /* Activities Section */
-  .print-activities {
-    margin-top: 1.5rem;
-  }
-
-  .page-break {
-    page-break-before: always;
-  }
-
-  .print-activities h3 {
-    font-size: 14pt;
-    color: #0f766e;
-    margin-bottom: 1rem;
-    border-bottom: 2px solid #14b8a6;
-    padding-bottom: 0.5rem;
-  }
-
-  .student-info {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 1.5rem;
-    font-size: 11pt;
-  }
-
-  .blank-line {
-    display: inline-block;
-    width: 300px;
-    border-bottom: 1px solid #000;
-    margin-left: 0.5rem;
-  }
-
-  .blank-line-short {
-    display: inline-block;
-    width: 150px;
-    border-bottom: 1px solid #000;
-    margin-left: 0.5rem;
-  }
-
-  .blank-line-full {
-    display: block;
-    width: 100%;
-    border-bottom: 1px solid #000;
-    margin: 0.5rem 0;
-    height: 16px;
-  }
-
-  .activity-checklist {
-    margin: 1rem 0;
-  }
-
-  .activity-item {
-    margin: 1rem 0;
-    padding: 0.75rem;
-    background: #f9fafb;
-    border-left: 4px solid #14b8a6;
-    page-break-inside: avoid;
-  }
-
-  .activity-item input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    margin-right: 0.75rem;
-    vertical-align: middle;
-    display: inline-block !important;
-  }
-
-  .activity-item label {
-    display: inline;
-    font-size: 11pt;
-    line-height: 1.6;
-  }
-
-  .answer-line {
-    margin: 0.5rem 0 0 2rem;
-    font-size: 10pt;
-  }
-
-  /* Discussion Questions */
-  .discussion-section {
-    margin-top: 2rem;
-    page-break-inside: avoid;
-  }
-
-  .discussion-section h4 {
-    font-size: 12pt;
-    color: #0f766e;
-    margin-bottom: 1rem;
-  }
-
-  .discussion-question {
-    margin: 1.5rem 0;
-    page-break-inside: avoid;
-  }
-
-  .discussion-question p {
-    font-size: 11pt;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-    color: #1f2937;
-  }
-
-  .answer-lines {
-    margin-left: 1rem;
-  }
-
-  /* QR Code Section */
-  .print-qr-section {
-    margin: 2rem 0 1rem 0;
-    padding: 1rem;
-    border: 2px dashed #14b8a6;
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    page-break-inside: avoid;
-  }
-
-  .qr-instructions {
-    flex: 1;
-  }
-
-  .qr-instructions p {
-    margin: 0.25rem 0;
-    font-size: 10pt;
-  }
-
-  .qr-instructions p:first-child {
-    font-weight: bold;
-    font-size: 11pt;
-    color: #0f766e;
-  }
-
-  /* Footer */
-  .print-footer {
-    margin-top: 1rem;
-    padding-top: 0.5rem;
-    border-top: 1px solid #d1d5db;
-    text-align: center;
-    font-size: 9pt;
-    color: #6b7280;
-  }
-
-  .print-footer p {
-    margin: 0.25rem 0;
-  }
-
-  .print-footer p:first-child {
-    font-weight: bold;
-    color: #0f766e;
-  }
-}
-
-/* Screen-only: hide print elements */
-@media screen {
-  .print-only {
-    display: none;
-  }
-}
+2. **Live Webcast Alert**
+```javascript
+{launch.webcast_live && (
+  <div className="live-banner animate-pulse bg-gradient-to-r from-red-500 to-red-600 text-white font-black text-xl py-4 px-6 rounded-lg mb-4 flex items-center justify-center gap-3 shadow-lg">
+    <span className="relative flex h-4 w-4">
+      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+      <span className="relative inline-flex rounded-full h-4 w-4 bg-white"></span>
+    </span>
+    🔴 LIVE NOW! This launch is happening right now!
+    <span className="relative flex h-4 w-4">
+      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+      <span className="relative inline-flex rounded-full h-4 w-4 bg-white"></span>
+    </span>
+  </div>
+)}
 ```
 
-**Integration into LaunchMapView.jsx**:
+3. **Video Availability Badge** (on launch cards)
+```javascript
+{launch.vidURLs?.length > 0 && (
+  <div className="absolute top-2 right-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
+    🎥 VIDEO
+  </div>
+)}
+```
+
+#### Tab 2: Mission Information
+
+**Content Structure**:
 
 ```javascript
-import PrintableMapView from './PrintableMapView';
+const MissionTab = ({ launch }) => {
+  return (
+    <div className="mission-tab space-y-6 max-h-[500px] overflow-y-auto p-6">
+      {/* Full Mission Description */}
+      <section>
+        <h3 className="text-xl font-black text-[#003366] mb-3 flex items-center gap-2">
+          📋 Mission Description
+        </h3>
+        <p className="text-gray-700 leading-relaxed text-base">
+          {launch.mission?.description || 'No mission description available.'}
+        </p>
+      </section>
 
-// Add print button to map controls
-<button
-  onClick={() => window.print()}
-  className="print-button bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"
->
-  <Printer className="w-5 h-5" />
-  Print Worksheet
-</button>
+      {/* Kid-Friendly Explanation */}
+      <section className="bg-gradient-to-br from-yellow-50 to-orange-50 p-4 rounded-lg border-2 border-[#FDB913]">
+        <h3 className="text-lg font-black text-[#F7941D] mb-2 flex items-center gap-2">
+          🐢 Sea Turtle Says:
+        </h3>
+        <p className="text-gray-800 text-sm leading-relaxed">
+          {generateKidFriendlyExplanation(launch)}
+        </p>
+      </section>
 
-// Add at bottom of component
-<PrintableMapView siteData={siteData} launches={launches} />
-```
+      {/* Mission Stats Grid */}
+      <section className="grid grid-cols-2 gap-4">
+        <div className="stat-card bg-teal-50 p-4 rounded-lg border border-teal-200">
+          <p className="text-xs text-gray-600 font-semibold uppercase">Mission Type</p>
+          <p className="text-lg font-black text-[#0f766e]">
+            {launch.mission?.type || 'Unknown'}
+          </p>
+        </div>
 
-**Dependencies to Add**:
+        <div className="stat-card bg-blue-50 p-4 rounded-lg border border-blue-200">
+          <p className="text-xs text-gray-600 font-semibold uppercase">Orbit</p>
+          <p className="text-lg font-black text-[#0e7490]">
+            {launch.mission?.orbit?.name || 'N/A'}
+          </p>
+        </div>
 
-```bash
-npm install qrcode.react --legacy-peer-deps
-```
+        {launch.mission?.customer && (
+          <div className="stat-card bg-purple-50 p-4 rounded-lg border border-purple-200 col-span-2">
+            <p className="text-xs text-gray-600 font-semibold uppercase">Customer</p>
+            <p className="text-base font-bold text-purple-900">
+              {launch.mission.customer}
+            </p>
+          </div>
+        )}
+      </section>
 
-#### Educational Value
-- **Classroom Extension**: Digital learning → physical worksheet
-- **Multiple Learning Styles**: Visual, kinesthetic, written
-- **Assessment Tool**: Teachers can evaluate understanding
-- **Homework-Friendly**: Students can complete at home
-- **Discussion Starters**: Question prompts engage critical thinking
-- **Technology Bridge**: QR code connects print to digital
+      {/* Fun Facts Section */}
+      <section className="bg-gradient-to-br from-cyan-50 to-blue-50 p-4 rounded-lg border-2 border-cyan-300">
+        <h3 className="text-lg font-black text-[#0e7490] mb-3 flex items-center gap-2">
+          ✨ Fun Facts
+        </h3>
+        <ul className="space-y-2 text-sm text-gray-700">
+          {generateFunFacts(launch).map((fact, idx) => (
+            <li key={idx} className="flex items-start gap-2">
+              <span className="text-[#F7941D] font-black">•</span>
+              <span>{fact}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
 
-**Time Estimate**: 3-4 hours
-
----
-
-## 📋 Phase 2: Engagement (Week 2)
-
-### Feature 3: Swimming Space Turtle Animation
-
-**Goal**: Animated space turtles swimming across ocean regions for visual delight
-
-**Concept**: 3-5 cute space turtles lazily swimming across the map's oceans, clickable for fun facts
-
-#### Animation Strategy
-
-**Ocean-Only Paths**: Turtles stay in water, avoid land masses
-
-```javascript
-// Predefined ocean swimming routes
-const oceanPaths = {
-  atlanticNorth: [
-    [35, -70], [32, -60], [30, -50], [28, -40], [30, -30], [33, -35], [35, -45], [37, -55], [35, -70]
-  ],
-  atlanticSouth: [
-    [-5, -30], [-10, -25], [-15, -20], [-20, -15], [-25, -20], [-20, -25], [-15, -28], [-10, -32], [-5, -30]
-  ],
-  pacificNorth: [
-    [25, -160], [20, -150], [15, -140], [10, -135], [5, -140], [10, -150], [15, -158], [20, -165], [25, -160]
-  ],
-  pacificSouth: [
-    [-10, -150], [-15, -145], [-20, -140], [-25, -145], [-30, -150], [-25, -155], [-20, -158], [-15, -155], [-10, -150]
-  ],
-  indian: [
-    [-10, 70], [-12, 80], [-15, 85], [-18, 90], [-20, 85], [-18, 75], [-15, 70], [-12, 65], [-10, 70]
-  ]
+      {/* Infographic Button */}
+      {launch.infographic && (
+        <button
+          onClick={() => window.open(launch.infographic, '_blank')}
+          className="w-full bg-gradient-to-r from-[#F7941D] to-[#FDB913] hover:from-[#FDB913] hover:to-[#F7941D] text-white font-black py-4 px-6 rounded-lg shadow-lg transform hover:scale-105 transition flex items-center justify-center gap-3"
+        >
+          📊 View Mission Infographic
+        </button>
+      )}
+    </div>
+  );
 };
 ```
 
-#### Implementation Code
+#### Tab 3: Technical Details
 
-**File**: `/components/SwimmingTurtle.jsx` (NEW)
+**Content Structure**:
 
 ```javascript
-import React, { useState, useEffect } from 'react';
-import { Marker, Popup } from 'react-leaflet';
-import L from 'leaflet';
+const DetailsTab = ({ launch }) => {
+  return (
+    <div className="details-tab space-y-4 max-h-[500px] overflow-y-auto p-6">
+      {/* Rocket Information */}
+      <section className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+        <h3 className="text-lg font-black text-gray-800 mb-3">🚀 Rocket</h3>
+        <div className="space-y-2 text-sm">
+          <div className="flex justify-between">
+            <span className="text-gray-600 font-semibold">Name:</span>
+            <span className="text-gray-900 font-bold">{launch.rocket?.configuration?.name}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-600 font-semibold">Family:</span>
+            <span className="text-gray-900 font-bold">{launch.rocket?.configuration?.family}</span>
+          </div>
+          {launch.rocket?.configuration?.description && (
+            <p className="text-gray-700 text-xs mt-2 pt-2 border-t border-gray-300">
+              {launch.rocket.configuration.description}
+            </p>
+          )}
+        </div>
+      </section>
 
-const SwimmingTurtle = ({ path, speed, turtleId, color, fact }) => {
-  const [pathIndex, setPathIndex] = useState(0);
-  const [direction, setDirection] = useState('right');
-  const [isPaused, setIsPaused] = useState(false);
+      {/* Launch Pad */}
+      <section className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+        <h3 className="text-lg font-black text-gray-800 mb-3">📍 Launch Site</h3>
+        <div className="space-y-2 text-sm">
+          <div>
+            <span className="text-gray-600 font-semibold">Pad:</span>
+            <span className="text-gray-900 font-bold ml-2">{launch.pad?.name}</span>
+          </div>
+          <div>
+            <span className="text-gray-600 font-semibold">Location:</span>
+            <span className="text-gray-900 font-bold ml-2">{launch.pad?.location?.name}</span>
+          </div>
+          {launch.pad?.latitude && launch.pad?.longitude && (
+            <div className="text-xs text-gray-600 mt-2">
+              Coordinates: {launch.pad.latitude}°, {launch.pad.longitude}°
+            </div>
+          )}
+        </div>
+      </section>
 
-  // Animate turtle along path
-  useEffect(() => {
-    if (isPaused) return;
+      {/* Launch Provider */}
+      <section className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+        <h3 className="text-lg font-black text-gray-800 mb-3">🏢 Provider</h3>
+        <div className="space-y-2 text-sm">
+          <div>
+            <span className="text-gray-600 font-semibold">Company:</span>
+            <span className="text-gray-900 font-bold ml-2">{launch.launch_service_provider?.name}</span>
+          </div>
+          {launch.launch_service_provider?.type && (
+            <div>
+              <span className="text-gray-600 font-semibold">Type:</span>
+              <span className="text-gray-900 font-bold ml-2">{launch.launch_service_provider.type}</span>
+            </div>
+          )}
+        </div>
+      </section>
 
-    const interval = setInterval(() => {
-      setPathIndex(prevIndex => {
-        const nextIndex = (prevIndex + 1) % path.length;
+      {/* Status Information */}
+      <section className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+        <h3 className="text-lg font-black text-gray-800 mb-3">📊 Status</h3>
+        <div className="space-y-2 text-sm">
+          <div className="flex justify-between items-center">
+            <span className="text-gray-600 font-semibold">Current Status:</span>
+            <span className={`font-bold px-3 py-1 rounded-full text-xs ${
+              launch.status?.name === 'Success' ? 'bg-green-100 text-green-800' :
+              launch.status?.name === 'Go' ? 'bg-blue-100 text-blue-800' :
+              'bg-gray-100 text-gray-800'
+            }`}>
+              {launch.status?.name || 'Unknown'}
+            </span>
+          </div>
+          {launch.status?.description && (
+            <p className="text-gray-700 text-xs mt-2 pt-2 border-t border-gray-300">
+              {launch.status.description}
+            </p>
+          )}
+        </div>
+      </section>
+    </div>
+  );
+};
+```
 
-        // Determine swimming direction for sprite flip
-        const currentPos = path[prevIndex];
-        const nextPos = path[nextIndex];
+#### Helper Functions
 
-        if (nextPos[1] > currentPos[1]) {
-          setDirection('right');
-        } else if (nextPos[1] < currentPos[1]) {
-          setDirection('left');
-        }
+```javascript
+// Extract YouTube video ID from various URL formats
+const extractYouTubeId = (url) => {
+  if (!url) return null;
+  const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[7].length === 11) ? match[7] : null;
+};
 
-        return nextIndex;
-      });
-    }, speed);
+// Generate kid-friendly explanations based on mission data
+const generateKidFriendlyExplanation = (launch) => {
+  const orbit = launch.mission?.orbit?.name?.toLowerCase() || '';
+  const missionType = launch.mission?.type?.toLowerCase() || '';
 
-    return () => clearInterval(interval);
-  }, [path, speed, isPaused]);
+  if (orbit.includes('leo') || orbit.includes('low earth')) {
+    return "This rocket is going to Low Earth Orbit - that's like swimming in the shallow end of space! It's close enough that astronauts on the Space Station can wave at us!";
+  } else if (orbit.includes('geo') || orbit.includes('geostationary')) {
+    return "This rocket is going way up to Geostationary Orbit - so high that it stays over the same spot on Earth all day! That's where weather satellites and TV satellites hang out.";
+  } else if (missionType.includes('communication')) {
+    return "This mission is launching a satellite that helps us talk to each other from far away - like a super-powered cell phone tower in space!";
+  } else if (missionType.includes('science') || missionType.includes('research')) {
+    return "This is a science mission! Scientists are sending special tools to space to learn new things about our universe. Maybe one day you'll be a space scientist too!";
+  } else {
+    return "This rocket is blasting off to explore space and help us learn more about the universe! Every launch teaches us something new. 🚀";
+  }
+};
 
-  const position = path[pathIndex];
+// Generate fun facts from launch data
+const generateFunFacts = (launch) => {
+  const facts = [];
 
-  // Custom swimming turtle icon
-  const turtleIcon = L.divIcon({
-    html: `
-      <div class="swimming-turtle ${direction}" style="
-        animation: swim-wobble 2s ease-in-out infinite;
-      ">
-        <img
-          src="/images/space-turtle-swimmer.png"
-          alt="Swimming Turtle"
-          style="
-            width: 60px;
-            height: 60px;
-            filter: hue-rotate(${color}deg);
-            transform: ${direction === 'left' ? 'scaleX(-1)' : 'scaleX(1)'};
-          "
-        />
-      </div>
-    `,
-    iconSize: [60, 60],
-    iconAnchor: [30, 30],
-    className: 'swimming-turtle-marker'
-  });
+  // Rocket-specific facts
+  if (launch.rocket?.configuration?.name?.toLowerCase().includes('falcon')) {
+    facts.push("🦅 The Falcon rocket is named after the Millennium Falcon from Star Wars!");
+  }
+
+  // Speed fact
+  facts.push("🏃 This rocket will travel about 17,500 mph - that's 291 times faster than a sea turtle swims!");
+
+  // Launch site facts
+  if (launch.pad?.location?.name?.toLowerCase().includes('florida')) {
+    facts.push("🏖️ This launch is happening in Florida - the same state as our school! We're neighbors with rockets!");
+  }
+
+  // Orbit facts
+  const orbit = launch.mission?.orbit?.name?.toLowerCase() || '';
+  if (orbit.includes('iss') || orbit.includes('station')) {
+    facts.push("🛰️ This rocket is visiting the International Space Station where astronauts live in space!");
+  }
+
+  // General space fact
+  facts.push("🌍 From space, astronauts can see 16 sunrises and sunsets every day because they orbit Earth so fast!");
+
+  return facts.slice(0, 4); // Return max 4 facts
+};
+```
+
+#### Modal Component Implementation
+
+**File**: `/components/LaunchDetailModal.jsx` (NEW)
+
+```javascript
+import React, { useState } from 'react';
+import { X, Video, FileText, Settings } from 'lucide-react';
+
+const LaunchDetailModal = ({ launch, isOpen, onClose }) => {
+  const [activeTab, setActiveTab] = useState('video');
+
+  if (!isOpen || !launch) return null;
 
   return (
-    <Marker
-      position={position}
-      icon={turtleIcon}
-      eventHandlers={{
-        click: () => setIsPaused(!isPaused)
-      }}
-    >
-      <Popup className="turtle-fact-popup">
-        <div className="turtle-fact-content">
-          <h3 className="text-lg font-black text-[#003366] mb-2">
-            🐢 Space Turtle Says:
-          </h3>
-          <p className="text-sm text-gray-700">
-            {fact}
-          </p>
-          <button
-            onClick={() => setIsPaused(!isPaused)}
-            className="mt-2 text-xs bg-[#F7941D] text-white px-3 py-1 rounded-full font-bold"
-          >
-            {isPaused ? 'Resume Swimming' : 'Pause Turtle'}
-          </button>
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 animate-fade-in"
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+        <div
+          className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden pointer-events-auto transform animate-scale-in"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="bg-gradient-to-r from-[#2B8C74] to-[#14b8a6] text-white p-6 relative">
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 text-white/80 hover:text-white transition"
+            >
+              <X className="w-6 h-6" />
+            </button>
+
+            <h2 className="text-2xl font-black mb-2 pr-12">
+              {launch.name}
+            </h2>
+
+            <div className="flex items-center gap-4 text-sm">
+              <span className="flex items-center gap-1">
+                🚀 {launch.rocket?.configuration?.name}
+              </span>
+              <span className="flex items-center gap-1">
+                🏢 {launch.launch_service_provider?.name}
+              </span>
+            </div>
+          </div>
+
+          {/* Tabs */}
+          <div className="flex border-b border-gray-200 bg-gray-50">
+            <button
+              onClick={() => setActiveTab('video')}
+              className={`flex-1 py-4 px-6 font-bold text-sm flex items-center justify-center gap-2 transition ${
+                activeTab === 'video'
+                  ? 'bg-white text-[#2B8C74] border-b-4 border-[#2B8C74]'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}
+            >
+              <Video className="w-5 h-5" />
+              Video
+            </button>
+
+            <button
+              onClick={() => setActiveTab('mission')}
+              className={`flex-1 py-4 px-6 font-bold text-sm flex items-center justify-center gap-2 transition ${
+                activeTab === 'mission'
+                  ? 'bg-white text-[#2B8C74] border-b-4 border-[#2B8C74]'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}
+            >
+              <FileText className="w-5 h-5" />
+              Mission
+            </button>
+
+            <button
+              onClick={() => setActiveTab('details')}
+              className={`flex-1 py-4 px-6 font-bold text-sm flex items-center justify-center gap-2 transition ${
+                activeTab === 'details'
+                  ? 'bg-white text-[#2B8C74] border-b-4 border-[#2B8C74]'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}
+            >
+              <Settings className="w-5 h-5" />
+              Details
+            </button>
+          </div>
+
+          {/* Tab Content */}
+          <div className="bg-white">
+            {activeTab === 'video' && <VideoTab launch={launch} />}
+            {activeTab === 'mission' && <MissionTab launch={launch} />}
+            {activeTab === 'details' && <DetailsTab launch={launch} />}
+          </div>
         </div>
-      </Popup>
-    </Marker>
+      </div>
+    </>
   );
 };
 
-export default SwimmingTurtle;
-```
-
-**Integration into LaunchMapView.jsx**:
-
-```javascript
-import SwimmingTurtle from './SwimmingTurtle';
-
-const turtleFacts = [
-  "🐢 Did you know? Sea turtles can hold their breath for up to 7 hours while resting!",
-  "🚀 Space and ocean have something in common - both are vast frontiers to explore!",
-  "🐢 Real sea turtles navigate using Earth's magnetic field, just like rockets use guidance systems!",
-  "🌊 The ocean covers 71% of Earth's surface - imagine viewing it from space!",
-  "🛰️ Satellites help scientists track sea turtle migration patterns across the oceans!",
-  "🐢 Some sea turtles travel over 10,000 miles each year - that's farther than most rockets!",
-  "🌍 Both astronauts and sea turtles need special equipment to survive in their environments!",
-  "🚀 Just like rockets launch from Earth, baby sea turtles launch from beaches into the ocean!",
-  "🐢 Sea turtles have been around for 110 million years - they're older than rockets by a long shot!",
-  "⭐ From space, you can see the trails that sea turtles leave in the ocean!"
-];
-
-// In the component
-const swimmingTurtles = [
-  {
-    id: 1,
-    path: oceanPaths.atlanticNorth,
-    speed: 2000,
-    color: 0,
-    fact: turtleFacts[0]
-  },
-  {
-    id: 2,
-    path: oceanPaths.pacificNorth,
-    speed: 2500,
-    color: 120,
-    fact: turtleFacts[1]
-  },
-  {
-    id: 3,
-    path: oceanPaths.indian,
-    speed: 1800,
-    color: 240,
-    fact: turtleFacts[2]
-  },
-  {
-    id: 4,
-    path: oceanPaths.pacificSouth,
-    speed: 2200,
-    color: 180,
-    fact: turtleFacts[3]
-  },
-  {
-    id: 5,
-    path: oceanPaths.atlanticSouth,
-    speed: 1900,
-    color: 300,
-    fact: turtleFacts[4]
-  }
-];
-
-// In MapContainer
-{swimmingTurtles.map(turtle => (
-  <SwimmingTurtle
-    key={turtle.id}
-    path={turtle.path}
-    speed={turtle.speed}
-    turtleId={turtle.id}
-    color={turtle.color}
-    fact={turtle.fact}
-  />
-))}
+export default LaunchDetailModal;
 ```
 
 **CSS Animations** (`/styles/globals.css`):
 
 ```css
-/* Swimming Turtle Animations */
-@keyframes swim-wobble {
-  0%, 100% {
-    transform: translateY(0px) rotate(0deg);
+/* Modal Animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
   }
-  25% {
-    transform: translateY(-3px) rotate(2deg);
-  }
-  50% {
-    transform: translateY(0px) rotate(0deg);
-  }
-  75% {
-    transform: translateY(3px) rotate(-2deg);
+  to {
+    opacity: 1;
   }
 }
 
-.swimming-turtle-marker {
-  cursor: pointer;
-  z-index: 500 !important; /* Below launch markers */
-  transition: transform 0.3s ease;
-}
-
-.swimming-turtle-marker:hover {
-  transform: scale(1.2);
-  z-index: 600 !important;
-}
-
-.turtle-fact-popup .leaflet-popup-content-wrapper {
-  background: linear-gradient(135deg, #e0f2fe 0%, #ccfbf1 100%);
-  border: 3px solid #14b8a6;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-.turtle-fact-content {
-  padding: 0.5rem;
-  text-align: center;
-}
-
-/* Disable on mobile for performance */
-@media (max-width: 768px) {
-  .swimming-turtle-marker {
-    display: none;
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
   }
 }
 
-/* Hide from print */
-@media print {
-  .swimming-turtle-marker {
-    display: none !important;
-  }
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.3s ease-out;
+}
+
+/* Scrollbar styling for modal content */
+.mission-tab::-webkit-scrollbar,
+.details-tab::-webkit-scrollbar {
+  width: 8px;
+}
+
+.mission-tab::-webkit-scrollbar-track,
+.details-tab::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.mission-tab::-webkit-scrollbar-thumb,
+.details-tab::-webkit-scrollbar-thumb {
+  background: #14b8a6;
+  border-radius: 4px;
+}
+
+.mission-tab::-webkit-scrollbar-thumb:hover,
+.details-tab::-webkit-scrollbar-thumb:hover {
+  background: #0f766e;
 }
 ```
 
-**Performance Optimizations**:
+#### Integration into SeaTurtleSpaceTrackerEnhanced.jsx
 
 ```javascript
-// Pause turtles during map interaction
-const MapInteractionHandler = () => {
-  const map = useMap();
-  const [isInteracting, setIsInteracting] = useState(false);
+import LaunchDetailModal from './LaunchDetailModal';
 
-  useEffect(() => {
-    map.on('dragstart zoomstart', () => setIsInteracting(true));
-    map.on('dragend zoomend', () => setIsInteracting(false));
+// Add state for modal
+const [selectedLaunch, setSelectedLaunch] = useState(null);
+const [isModalOpen, setIsModalOpen] = useState(false);
 
-    return () => {
-      map.off('dragstart zoomstart');
-      map.off('dragend zoomend');
-    };
-  }, [map]);
+// Modify launch cards to be clickable
+<div
+  onClick={() => {
+    setSelectedLaunch(launch);
+    setIsModalOpen(true);
+  }}
+  className="cursor-pointer transform hover:scale-105 transition-transform"
+>
+  {/* Existing launch card content */}
 
-  return null;
-};
+  {/* Add video badge if available */}
+  {launch.vidURLs?.length > 0 && (
+    <div className="absolute top-2 right-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
+      🎥 VIDEO
+    </div>
+  )}
+
+  {/* Add live indicator if streaming */}
+  {launch.webcast_live && (
+    <div className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1 animate-pulse">
+      <span className="relative flex h-2 w-2">
+        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+        <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+      </span>
+      LIVE
+    </div>
+  )}
+</div>
+
+// Add modal at bottom of component
+<LaunchDetailModal
+  launch={selectedLaunch}
+  isOpen={isModalOpen}
+  onClose={() => setIsModalOpen(false)}
+/>
 ```
 
 #### Educational Value
-- **Engagement**: Playful, discovery-based learning
-- **Theme Reinforcement**: Ocean-to-space connection
-- **Fun Facts**: Educational content in entertaining format
-- **Easter Egg**: Rewards exploration and curiosity
 
-**Time Estimate**: 4-6 hours
+- **Deep Learning**: Students can explore missions in detail
+- **Video Learning**: Visual content enhances engagement
+- **Real-time Awareness**: Live indicators create excitement
+- **Scaffolded Content**: Tabs organize information by complexity
+- **Kid-Friendly**: Simple explanations bridge to technical details
+- **Curiosity-Driven**: Students click what interests them
+
+**Time Estimate**: 8-10 hours
 
 ---
 
-## 📋 Phase 3: Advanced Learning (Weeks 3-4) - FUTURE
+### Feature 7: YouTube Data API Integration (Optional Enhancement)
 
-### Feature 4: Time-Lapse Animation
+**Status**: Phase 3B - After basic modal is working
+**Goal**: Automatically discover videos for launches without vidURLs
 
-**Status**: Planned for future implementation after Phase 1-2 feedback
+**Implementation Strategy**:
+
+1. **API Key Setup** (Free tier: 10,000 requests/day)
+2. **Search Query Construction**: `"[rocket name] [launch date] launch"`
+3. **Result Caching**: Store found videos in localStorage
+4. **Manual Video Map**: JSON file with curated historic launch videos
+
+**Not implemented initially** - basic modal uses Launch Library 2's vidURLs field
+
+**Time Estimate**: 4-6 hours (if implemented later)
+
+---
+
+## 📋 Phase 4: Advanced Learning (Weeks 4-5) - FUTURE
+
+### Feature 8: Time-Lapse Animation
+
+**Status**: Planned for future implementation after Phase 3 feedback
 
 **Concept**: Video-player style controls to watch launch history unfold chronologically
 
@@ -1215,7 +659,7 @@ const MapInteractionHandler = () => {
 
 ---
 
-### Feature 5: Launch Trajectory Arcs
+### Feature 9: Launch Trajectory Arcs
 
 **Status**: Planned for future implementation
 
@@ -1658,10 +1102,11 @@ Phase 1-2 is considered complete when:
 
 ---
 
-**Last Updated**: February 2025
-**Version**: 1.0
-**Status**: Phase 1-2 In Progress
-**Next Review**: After Phase 1-2 completion
+**Last Updated**: October 1, 2025
+**Version**: 1.2 (Archived Phase 1-2 to changelog.md)
+**Status**: Phase 1-2 COMPLETED ✅ (See /docs/changelog.md) | Phase 3 PLANNED 📋
+**Next Phase**: Launch Detail Modal System
+**Next Review**: After Phase 3 completion
 
 ---
 

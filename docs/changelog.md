@@ -1,5 +1,74 @@
 # 🐢 Sea Turtle Space Tracker - Complete Update Log
 
+## Version 3.1 - Map Enhancements (February 2025)
+
+### 🗺️ Interactive Map Features (Phase 1-2 Complete)
+
+#### Custom Space Turtle Marker Icons ✅
+- **Replaced**: Generic colored circle markers with branded sea turtle astronaut markers
+- **Size Variations**: 4 distinct sizes based on launch frequency
+  - Small (40px): 1-4 launches - Green turtle
+  - Medium (55px): 5-9 launches - Yellow turtle
+  - Large (70px): 10-19 launches - Orange turtle
+  - X-Large (90px): 20+ launches - Red turtle
+- **Number Badges**: Each turtle displays launch count in orange/yellow gradient badge
+- **Pulse Animation**: Red pulsing ring for sites with upcoming launches
+- **Hover Effects**: Scale and rotation on hover for interactive feedback
+- **Implementation**: Custom Leaflet DivIcon with CSS filters for color variations
+- **Files Modified**: `components/LaunchMapView.jsx`, `styles/globals.css`
+
+#### Print-Friendly Map Worksheet ✅
+- **Purpose**: Transform interactive map into classroom-ready handout
+- **Format**: Standard 8.5" x 11" letter paper, B&W and color compatible
+- **Content Includes**:
+  - Static map view with legend
+  - Top 10 busiest launch sites table
+  - 5 student activities with checkboxes
+  - 3 discussion questions with answer lines
+  - QR code linking to interactive online map
+  - School branding and educational footer
+- **Print Optimizations**:
+  - Page break management
+  - Print-specific CSS (@media print)
+  - Hidden interactive elements
+  - High-contrast readable fonts
+- **New Component**: `components/PrintableMapView.jsx`
+- **New Dependency**: `qrcode.react` for QR code generation
+- **Files Modified**: `components/LaunchMapView.jsx`, `styles/globals.css`
+
+#### Swimming Space Turtle Animations ✅
+- **Feature**: 5 animated space turtles swimming across ocean regions
+- **Ocean Paths**: Predefined routes in Atlantic North/South, Pacific North/South, and Indian Ocean
+- **Animations**:
+  - Swim wobble effect (gentle up/down motion with rotation)
+  - Variable speeds (1800-2500ms) for visual depth
+  - Automatic direction flipping based on swimming direction
+- **Interactive**: Click to pause/resume turtle and view educational facts
+- **Educational Content**: 10 fun facts connecting space exploration and ocean conservation
+- **Color Variations**: Hue rotation filters (0°, 120°, 180°, 240°, 300°) for turtle diversity
+- **Performance**:
+  - Disabled on mobile devices for performance
+  - Paused during map interaction (drag/zoom)
+  - Hidden during print
+  - 60fps animation on desktop
+- **New Component**: `components/SwimmingTurtle.jsx`
+- **Files Modified**: `components/LaunchMapView.jsx`, `styles/globals.css`
+
+### 🎓 Educational Impact
+- **Visual Engagement**: Branded mascot throughout map experience
+- **Classroom Integration**: Print worksheets extend digital learning to physical activities
+- **Fun Discovery**: Swimming turtles reward exploration with educational facts
+- **Multi-Modal Learning**: Visual (map), kinesthetic (print activities), interactive (animations)
+
+### 🔧 Technical Details
+- **Git Commit**: `1f2005b feat: Add interactive turtle markers, print worksheet, and swimming animations`
+- **Deployment**: Live on Vercel production (February 2025)
+- **New Assets**:
+  - `public/images/space-turtle-marker.png`
+  - `public/images/space-turtle-swimmer.png`
+
+---
+
 ## Version 3.0 - Major Data & UI Enhancement (September 30, 2025)
 
 ### 🚀 Major Features Added
@@ -183,9 +252,9 @@ const pastPages = 2;     // 200 launches
 
 ---
 
-**Last Updated**: September 30, 2025
-**Current Version**: 3.0
-**Total Updates**: 15+ major features and enhancements
+**Last Updated**: October 1, 2025
+**Current Version**: 3.1
+**Total Updates**: 18+ major features and enhancements
 **Educational Impact**: Enhanced global space program awareness for elementary students
 
 🐢🚀 "Swimming through space and time, one launch at a time!"

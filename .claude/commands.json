@@ -1,0 +1,10 @@
+{
+  "commands": {},
+  "aliases": {},
+  "settings": {
+    "confirmBeforeRun": [],
+    "showOutput": true,
+    "defaultCategory": "general"
+  },
+  "_note": "This commands.json file contained database-specific commands from a previous project. It has been cleared so you can add project-specific bash commands as needed. The main slash commands are defined in .claude/commands/*.md files."
+}

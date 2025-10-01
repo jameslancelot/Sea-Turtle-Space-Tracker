@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-  Rocket, Calendar, Clock, MapPin, Globe, Filter, Search, Grid3x3, List,
+  Rocket, Calendar, Clock, MapPin, Globe, Filter, Search, Grid3x3,
   ChevronDown, X, CheckCircle, XCircle, AlertCircle, Loader, ExternalLink,
   BarChart2, Shell, TrendingUp, Eye, EyeOff, Table, Download, Waves, Star,
   Palmtree, Fish, Anchor, Zap, Printer, Map
@@ -154,15 +154,6 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-    });
-  };
-
-  const formatDateCompact = (netDate) => {
-    const date = new Date(netDate);
-    return date.toLocaleDateString('en-US', {
-      month: '2-digit',
-      day: '2-digit',
-      year: 'numeric'
     });
   };
 
@@ -433,17 +424,6 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
                 title="Table View"
               >
                 <Table className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => setDisplayMode('compact')}
-                className={`p-2 rounded transition-all ${
-                  displayMode === 'compact'
-                    ? 'bg-yellow-400 text-teal-900'
-                    : 'text-yellow-300 hover:bg-teal-700/50'
-                }`}
-                title="List View"
-              >
-                <List className="w-5 h-5" />
               </button>
               <button
                 onClick={() => {
@@ -832,44 +812,6 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
               </div>
             )}
 
-            {/* Compact List View */}
-            {displayMode === 'compact' && (
-              <div className="space-y-2 no-print">
-                {filteredLaunches.map(launch => (
-                  <div
-                    key={launch.id}
-                    className="flex items-center justify-between p-3 bg-white/10 hover:bg-white/15 backdrop-blur-sm rounded-lg transition-colors border border-white/10 hover:border-yellow-400/30"
-                  >
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className="w-10 h-10 rounded-full bg-teal-800/50 flex items-center justify-center">
-                        {isUpcoming(launch) ? (
-                          <Clock className="w-5 h-5 text-yellow-400" />
-                        ) : launch.status?.id === 3 ? (
-                          <CheckCircle className="w-5 h-5 text-green-400" />
-                        ) : (
-                          <XCircle className="w-5 h-5 text-red-400" />
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-white text-sm font-medium">{launch.name}</div>
-                        <div className="text-cyan-300 text-xs mt-0.5">
-                          {launch.rocket?.configuration?.name} • {formatDateCompact(launch.net)}
-                        </div>
-                        <div className="text-green-300 text-xs mt-0.5 flex items-center">
-                          <MapPin className="w-3 h-3 mr-1" />
-                          {formatLocation(launch)}
-                        </div>
-                      </div>
-                    </div>
-                    {isUpcoming(launch) && countdown[launch.id] && (
-                      <div className="text-yellow-300 font-mono text-xs font-semibold">
-                        {countdown[launch.id].formatted}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
           </>
         ) : (
           <div className="text-center py-12">

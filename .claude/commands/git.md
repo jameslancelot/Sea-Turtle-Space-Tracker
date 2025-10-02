@@ -44,8 +44,12 @@ This ensures you **cannot accidentally deploy crashing or insecure code** to pro
 /git                           # Safe mode with auto-generated message
 /git quick                     # Quick mode for rapid iteration
 /git safe "feat: new feature"  # Safe mode with custom message
-/git strict "fix: security"    # Strict mode for critical fixes
+/git strict "fix: security"    # Strict mode with rollback protection
 /git skip "hotfix: emergency"  # Skip review for emergencies
+
+# Environment Variables
+DEPLOY_ENV=preview /git        # Deploy to preview (non-production)
+DEPLOY_ENV=production /git     # Deploy to production (default)
 ```
 
 ## Smart Message Generation:
@@ -62,6 +66,10 @@ When no custom message is provided, the system:
 - **Cost Optimized**: Smart caching and incremental reviews
 - **Team Consistent**: Shared review standards via `.coderabbit.yml`
 - **CI/CD Ready**: Works with GitHub Actions and automated pipelines
+- **Vercel Direct**: Fully integrated with Vercel CLI for instant deployments
+- **Smart Validation**: Validates production URLs with accurate status checking
+- **Auto Rollback**: In strict mode, automatically rolls back failed deployments
+- **Environment Control**: Support for preview/staging deployments via DEPLOY_ENV
 
 ## Requirements:
 

@@ -30,14 +30,19 @@ print_section() {
 MODE="${1:-safe}"
 CUSTOM_MESSAGE="${2:-}"
 
+# Deployment environment (can be overridden via env var)
+DEPLOY_ENV="${DEPLOY_ENV:-production}"
+
 # Project root
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
-# Track state for cleanup
+# Track state for cleanup and rollback
 DEV_SERVER_PID=""
 BACKUP_BRANCH=""
 DEPLOYMENT_URL=""
+PREVIOUS_DEPLOYMENT_URL=""
+CURRENT_COMMIT=""
 
 # Cleanup function
 cleanup() {
@@ -47,6 +52,39 @@ cleanup() {
         # Also kill any orphaned Next.js processes
         pkill -f "next dev" 2>/dev/null || true
     fi
+}
+
+# Rollback function for failed deployments
+rollback_deployment() {
+    local reason="$1"
+
+    print_color $RED "🔄 INITIATING DEPLOYMENT ROLLBACK"
+    print_color $RED "════════════════════════════════════════════════════"
+    print_color $YELLOW "Reason: $reason"
+    echo ""
+
+    if [ -n "$PREVIOUS_DEPLOYMENT_URL" ]; then
+        print_color $BLUE "Rolling back to previous deployment..."
+        print_color $BLUE "Previous URL: $PREVIOUS_DEPLOYMENT_URL"
+
+        # Use vercel rollback or redeploy previous commit
+        if vercel rollback --yes 2>/dev/null; then
+            print_color $GREEN "✅ Rollback successful"
+            print_color $CYAN "Production restored to: $PREVIOUS_DEPLOYMENT_URL"
+        else
+            print_color $YELLOW "⚠️  Automatic rollback failed"
+            print_color $YELLOW "💡 Manual rollback options:"
+            print_color $YELLOW "   1. Go to Vercel dashboard and rollback manually"
+            print_color $YELLOW "   2. Run: vercel rollback"
+            print_color $YELLOW "   3. Or run: git revert $CURRENT_COMMIT && /git"
+        fi
+    else
+        print_color $YELLOW "⚠️  No previous deployment found for rollback"
+        print_color $YELLOW "💡 Check Vercel dashboard for manual intervention"
+    fi
+
+    echo ""
+    print_color $RED "════════════════════════════════════════════════════"
 }
 
 # Set trap for cleanup
@@ -342,10 +380,24 @@ print_color $GREEN "✅ Pushed to origin/$CURRENT_BRANCH"
 
 print_section "🚀 Step 6: Vercel Deployment"
 
-print_color $BLUE "Deploying to Vercel..."
+# Store current deployment for potential rollback
+CURRENT_COMMIT=$(git rev-parse --short HEAD)
+PREVIOUS_DEPLOYMENT_URL=$(vercel ls --prod 2>/dev/null | grep "https://" | head -1 | awk '{print $2}' || echo "")
 
-# Deploy to production
-DEPLOY_OUTPUT=$(vercel --prod --yes 2>&1 || handle_error 1 "Vercel deployment failed")
+if [ -n "$PREVIOUS_DEPLOYMENT_URL" ]; then
+    print_color $BLUE "Previous deployment: $PREVIOUS_DEPLOYMENT_URL"
+fi
+
+# Determine deployment type
+if [ "$DEPLOY_ENV" = "preview" ]; then
+    print_color $BLUE "Deploying to Vercel (preview)..."
+    DEPLOY_OUTPUT=$(vercel --yes 2>&1 || handle_error 1 "Vercel deployment failed")
+elif [ "$DEPLOY_ENV" = "production" ]; then
+    print_color $BLUE "Deploying to Vercel (production)..."
+    DEPLOY_OUTPUT=$(vercel --prod --yes 2>&1 || handle_error 1 "Vercel deployment failed")
+else
+    handle_error 1 "Invalid DEPLOY_ENV: $DEPLOY_ENV (must be 'production' or 'preview')"
+fi
 
 # Extract deployment URL
 DEPLOYMENT_URL=$(echo "$DEPLOY_OUTPUT" | grep -o 'https://[^ ]*\.vercel\.app' | head -1)
@@ -375,13 +427,55 @@ if [ -n "$DEPLOYMENT_URL" ]; then
     # Wait a moment for deployment to propagate
     sleep 3
 
-    # Check if deployment is accessible
-    DEPLOY_HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$DEPLOYMENT_URL" || echo "000")
+    # Get production URL from vercel project
+    PRODUCTION_URL=$(vercel ls --prod 2>/dev/null | grep "https://" | head -1 | awk '{print $2}')
+
+    if [ -z "$PRODUCTION_URL" ]; then
+        # Fallback to vercel.json or standard production URL pattern
+        PRODUCTION_URL="https://sea-turtle-space-tracker.vercel.app"
+    fi
+
+    print_color $BLUE "Checking production URL: $PRODUCTION_URL"
+
+    # Check if production deployment is accessible
+    DEPLOY_HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$PRODUCTION_URL" 2>/dev/null || echo "000")
 
     if [ "$DEPLOY_HTTP_CODE" = "200" ]; then
-        print_color $GREEN "✅ Deployment is accessible (HTTP 200)"
+        print_color $GREEN "✅ Production deployment is live (HTTP 200)"
+        print_color $CYAN "🌐 Production URL: $PRODUCTION_URL"
+    elif [ "$DEPLOY_HTTP_CODE" = "000" ]; then
+        print_color $YELLOW "⚠️  Could not reach deployment (check network connection)"
+
+        # In strict mode, failed validation triggers rollback
+        if [ "$MODE" = "strict" ] && [ "$DEPLOY_ENV" = "production" ]; then
+            rollback_deployment "Production deployment validation failed (unreachable)"
+            handle_error 1 "Deployment validation failed - rollback initiated"
+        fi
     else
-        print_color $YELLOW "⚠️  Deployment returned HTTP $DEPLOY_HTTP_CODE"
+        print_color $YELLOW "⚠️  Production URL returned HTTP $DEPLOY_HTTP_CODE"
+        print_color $YELLOW "💡 This may be temporary - check Vercel dashboard"
+
+        # In strict mode, non-200 status triggers rollback
+        if [ "$MODE" = "strict" ] && [ "$DEPLOY_ENV" = "production" ] && [ "$DEPLOY_HTTP_CODE" != "200" ]; then
+            rollback_deployment "Production deployment returned HTTP $DEPLOY_HTTP_CODE"
+            handle_error 1 "Deployment validation failed - rollback initiated"
+        fi
+    fi
+
+    # Also validate the deployment status via Vercel CLI
+    print_color $BLUE "Checking deployment status..."
+    DEPLOY_STATUS=$(vercel inspect "$DEPLOYMENT_URL" 2>/dev/null | grep "status" | head -1 || echo "unknown")
+
+    if echo "$DEPLOY_STATUS" | grep -qi "ready"; then
+        print_color $GREEN "✅ Deployment status: Ready"
+    else
+        print_color $YELLOW "⚠️  Deployment status: $DEPLOY_STATUS"
+
+        # In strict mode, non-ready status triggers rollback
+        if [ "$MODE" = "strict" ] && [ "$DEPLOY_ENV" = "production" ]; then
+            rollback_deployment "Deployment status is not 'Ready': $DEPLOY_STATUS"
+            handle_error 1 "Deployment validation failed - rollback initiated"
+        fi
     fi
 fi
 

@@ -13,6 +13,7 @@
 
 ## 📋 Feature Requests
 - Add Youtube Video Links to each launch card
+- Add a map view of the world for satelites? With turtles? 
 - Add goals of the mission?
 - Launch trajectory arcs showing orbital paths
 - Time-lapse animation watching launches over time

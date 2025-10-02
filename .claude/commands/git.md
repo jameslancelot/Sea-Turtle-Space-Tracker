@@ -12,19 +12,31 @@ Execute complete git workflow with AI-powered code review and intelligent commit
 
 **What this command does:**
 
-1. **Pre-commit Quality Checks**: Run linting, type checking, and basic validations
-2. **CodeRabbit AI Review**: Intelligent code analysis with configurable review modes
-3. **Smart Commit Messages**: AI-generated conventional commit messages from diff analysis
-4. **Automated Git Flow**: Stage, commit, and push with intelligent error handling
-5. **Post-commit Analysis**: Optional comprehensive review after successful commit
+1. **Pre-commit Quality Checks**: Verify required tools and git status
+2. **CodeRabbit AI Review**: Intelligent code analysis - **blocks on critical issues**
+3. **Browser Error Testing**: Start dev server, check for console errors - **blocks on crashes**
+4. **Smart Commit Messages**: AI-generated conventional commit messages from diff analysis
+5. **Automated Git Flow**: Stage, commit, and push with intelligent error handling
+6. **Vercel Deployment**: Deploy to production with build validation
+7. **Post-deployment Validation**: Verify deployment URL and check for errors
+
+**🛡️ Safety guarantee**: Critical errors (security, crashes) **block deployment by default**
 
 ## Review Modes:
 
-- **`quick`**: Fast AI feedback for rapid development iterations (<5s)
-- **`safe`**: Standard review with warnings shown but not blocking (~10s) **[Default]**
-- **`strict`**: Review blocks commit on critical issues (~15s, for critical changes)
-- **`skip`**: Skip CodeRabbit entirely (emergency commits only)
-- **`force`**: Force commit bypassing all checks (use with extreme caution)
+- **`quick`**: Fast review, **blocks on critical errors**, warns on non-critical (<5s)
+- **`safe`**: Full review, **blocks on critical errors**, warns on non-critical (~10s) **[Default]**
+- **`strict`**: Deep review, **blocks on ALL issues** including warnings (~15s)
+- **`skip`**: Skips code review, **still blocks on browser errors** (emergency only)
+- **`force`**: Bypasses **ALL checks** - can deploy broken code! (⚠️ DANGEROUS)
+
+## Safety-First Design:
+
+🛡️ **Critical errors ALWAYS block deployment** (except in force mode):
+- Security vulnerabilities, data loss risks, breaking changes
+- React errors, build failures, runtime exceptions, syntax errors
+
+This ensures you **cannot accidentally deploy crashing or insecure code** to production.
 
 ## Usage Patterns:
 

@@ -1,0 +1,164 @@
+# CodeRabbit Configuration for Sea Turtle Space Tracker
+# Educational web app for PVPV/Rawlings Elementary School
+# Focus: Code quality, performance, accessibility, and educational UX
+
+language: en-US
+
+# Review behaviors
+reviews:
+  # Request changes workflow on PRs
+  request_changes_workflow: false
+
+  # High level summary
+  high_level_summary: true
+
+  # Auto-review settings
+  auto_review:
+    enabled: true
+    # Review everything except certain patterns
+    ignore_title_keywords:
+      - "WIP"
+      - "DO NOT REVIEW"
+    drafts: false
+
+  # Poem in reviews (fun for educational project!)
+  poem: false
+
+  # Review levels
+  review_status: true
+
+  # Collapse walkthrough
+  collapse_walkthrough: false
+
+  # Path-specific instructions
+  path_instructions:
+    - path: "components/**"
+      instructions: |
+        - Ensure components are age-appropriate for elementary school students
+        - Check for high contrast and large touch targets for young users
+        - Verify sea turtle theme consistency
+        - Validate accessibility features (ARIA labels, keyboard navigation)
+
+    - path: "pages/api/**"
+      instructions: |
+        - Verify CORS handling for Launch Library 2 API
+        - Check error messages are kid-friendly
+        - Ensure graceful degradation if API fails
+        - Validate data filtering for educational content
+
+    - path: "**/*.css"
+      instructions: |
+        - Maintain sea turtle color scheme (teal, orange, yellow, blue)
+        - Ensure animations are smooth and not distracting
+        - Check for print-friendly styles for classroom worksheets
+        - Verify mobile responsiveness for school tablets
+
+    - path: "**/*.tsx"
+      instructions: |
+        - Check TypeScript types are properly defined
+        - Ensure React hooks follow rules of hooks
+        - Validate proper cleanup in useEffect
+        - Check for potential memory leaks in intervals/timeouts
+
+# Knowledge base
+knowledge_base:
+  - "This is an educational web app for elementary school students"
+  - "Target audience is 6-11 years old (grades 1-5)"
+  - "The sea turtle is the school mascot and should be prominent in theming"
+  - "Performance is critical - many schools have slow internet"
+  - "App tracks launches from ALL global space providers via Launch Library 2 API"
+  - "Educational focus: STEM learning, geography, time concepts, data literacy"
+
+# Chat instructions
+chat:
+  auto_reply: true
+
+# Tools and integrations
+tools:
+  # Automated testing
+  shellcheck:
+    enabled: true
+
+  # GitHub Actions integration
+  github-actions:
+    enabled: true
+
+  # Performance checks
+  lighthouse:
+    enabled: true
+
+# Early access features
+early_access: true
+
+# Code quality checks
+checks:
+  # Security
+  - security_vulnerabilities
+  - dependency_vulnerabilities
+
+  # Best practices
+  - code_smells
+  - code_duplication
+  - complexity
+  - performance
+
+  # Educational focus
+  - accessibility
+  - browser_compatibility
+  - mobile_responsiveness
+
+  # React/Next.js specific
+  - react_best_practices
+  - nextjs_best_practices
+  - api_route_security
+
+# Custom rules for this project
+custom_rules:
+  - name: "Kid-friendly error messages"
+    description: "Error messages should be simple and encouraging for young students"
+    pattern: "throw.*Error|console.error"
+    severity: "warning"
+
+  - name: "Sea turtle theme consistency"
+    description: "Maintain consistent sea turtle branding and ocean theme"
+    pattern: "className.*(?!turtle|ocean|wave|swim)"
+    severity: "info"
+
+  - name: "Touch-friendly sizing"
+    description: "Interactive elements should be at least 44x44px for young users"
+    pattern: "button|onClick"
+    severity: "warning"
+
+  - name: "Print stylesheet support"
+    description: "Ensure print views work for classroom worksheets"
+    pattern: "@media print"
+    severity: "info"
+
+# Ignore patterns
+ignore:
+  - "**/*.min.js"
+  - "**/node_modules/**"
+  - "**/.next/**"
+  - "**/out/**"
+  - "**/dist/**"
+  - "**/.vercel/**"
+  - "**/coverage/**"
+  - "**/*.log"
+  - "**/package-lock.json"
+  - "**/yarn.lock"
+
+# Tone and style
+tone_instructions: |
+  Use encouraging, educational language appropriate for a school project.
+  Focus on constructive feedback that improves the learning experience for students.
+  Prioritize performance, accessibility, and age-appropriate UX.
+  Remember this is an educational tool - clarity and simplicity are paramount.
+
+# Additional context
+context:
+  project_type: "educational-web-app"
+  framework: "Next.js 14"
+  target_audience: "elementary-school-students"
+  deployment: "vercel"
+  api_provider: "launch-library-2"
+  theme: "sea-turtle-ocean-space"

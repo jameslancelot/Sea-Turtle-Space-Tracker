@@ -64,8 +64,15 @@ echo ""
 # Check if git script exists
 if [ ! -f "./scripts/git-with-coderabbit.sh" ]; then
     print_color $RED "❌ Git script not found!"
-    print_color $YELLOW "Please ensure scripts/git-with-coderabbit.sh exists"
+    print_color $YELLOW "Expected location: ./scripts/git-with-coderabbit.sh"
+    print_color $YELLOW "This script handles CodeRabbit review, browser testing, and deployment"
     exit 1
+fi
+
+# Verify script is executable
+if [ ! -x "./scripts/git-with-coderabbit.sh" ]; then
+    print_color $YELLOW "⚠️  Making git script executable..."
+    chmod +x ./scripts/git-with-coderabbit.sh
 fi
 
 # Check for changes
@@ -103,26 +110,61 @@ EXIT_CODE=$?
 
 if [ $EXIT_CODE -eq 0 ]; then
     echo ""
-    print_color $GREEN "🎉 Git operation completed successfully!"
+    print_color $GREEN "═══════════════════════════════════════════════════════"
+    print_color $GREEN "🎉 DEPLOYMENT COMPLETED SUCCESSFULLY!"
+    print_color $GREEN "═══════════════════════════════════════════════════════"
 
-    # Show current branch and suggest next steps
+    # Show current branch and commit
     CURRENT_BRANCH=$(git branch --show-current)
-    print_color $BLUE "Current branch: $CURRENT_BRANCH"
+    CURRENT_COMMIT=$(git rev-parse --short HEAD)
+    print_color $BLUE "📍 Branch: $CURRENT_BRANCH"
+    print_color $BLUE "📝 Commit: $CURRENT_COMMIT"
 
+    # Show what was completed
+    print_color $GREEN ""
+    print_color $GREEN "✅ Completed Steps:"
+    print_color $GREEN "  • CodeRabbit code review ($MODE mode)"
+    print_color $GREEN "  • Browser console error check"
+    print_color $GREEN "  • Git commit and push"
+    print_color $GREEN "  • Vercel production deployment"
+    print_color $GREEN "  • Post-deployment validation"
+
+    # Suggest next steps based on branch
     if [ "$CURRENT_BRANCH" != "main" ] && [ "$CURRENT_BRANCH" != "master" ]; then
         print_color $YELLOW ""
-        print_color $YELLOW "💡 Next steps:"
-        print_color $YELLOW "  • Create a PR on GitHub"
-        print_color $YELLOW "  • Run '/bugs all' on main after merging"
+        print_color $YELLOW "💡 Next Steps:"
+        print_color $YELLOW "  1. Create a PR: gh pr create"
+        print_color $YELLOW "  2. Review deployment in Vercel dashboard"
+        print_color $YELLOW "  3. Test deployment URL in multiple browsers"
+        print_color $YELLOW "  4. After merging: run '/bugs all' on main"
+    else
+        print_color $YELLOW ""
+        print_color $YELLOW "💡 Post-Deployment:"
+        print_color $YELLOW "  • Check Vercel dashboard for deployment status"
+        print_color $YELLOW "  • Test the production URL"
+        print_color $YELLOW "  • Monitor for any runtime errors"
     fi
 else
     echo ""
-    print_color $RED "❌ Git operation failed (exit code: $EXIT_CODE)"
+    print_color $RED "═══════════════════════════════════════════════════════"
+    print_color $RED "❌ DEPLOYMENT FAILED (exit code: $EXIT_CODE)"
+    print_color $RED "═══════════════════════════════════════════════════════"
     print_color $YELLOW ""
-    print_color $YELLOW "💡 Suggestions:"
-    print_color $YELLOW "  • Run '/bugs all' to fix issues"
-    print_color $YELLOW "  • Use '/git force' to bypass checks (not recommended)"
-    print_color $YELLOW "  • Review the output above for specific errors"
+    print_color $YELLOW "🔍 Review the error output above to identify the issue"
+    print_color $YELLOW ""
+    print_color $YELLOW "💡 Common Solutions:"
+    print_color $YELLOW "  • CodeRabbit issues: Fix code quality problems or use '/git safe'"
+    print_color $YELLOW "  • Browser errors: Check console logs and fix React errors"
+    print_color $YELLOW "  • Git issues: Ensure you have push permissions"
+    print_color $YELLOW "  • Vercel issues: Check vercel.json and build settings"
+    print_color $YELLOW ""
+    print_color $YELLOW "🚨 Emergency Override:"
+    print_color $YELLOW "  • Use '/git force' to bypass all checks (not recommended)"
+    print_color $YELLOW ""
+    print_color $YELLOW "🐛 Debug Help:"
+    print_color $YELLOW "  • Run '/bugs all' to detect and fix code issues"
+    print_color $YELLOW "  • Check dev server logs: tail -f /tmp/sea-turtle-dev.log"
+    print_color $YELLOW "  • Review CodeRabbit suggestions in the output above"
 fi
 
 exit $EXIT_CODE

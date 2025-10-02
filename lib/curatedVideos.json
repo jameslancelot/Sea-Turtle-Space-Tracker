@@ -1,0 +1,130 @@
+{
+  "comment": "Curated educational launch videos for Sea Turtle Space Tracker",
+  "info": "Hand-picked videos for safety and educational value. Teachers can add more!",
+
+  "falcon-9-default": {
+    "videoId": "Z4TXCZG_NEY",
+    "url": "https://www.youtube.com/watch?v=Z4TXCZG_NEY",
+    "title": "Falcon 9 Launch Explained",
+    "channel": "SpaceX",
+    "description": "Educational overview of Falcon 9 rocket launches",
+    "thumbnail": "https://img.youtube.com/vi/Z4TXCZG_NEY/maxresdefault.jpg",
+    "duration": "5:23",
+    "ageAppropriate": true
+  },
+
+  "starship-default": {
+    "videoId": "3N7L8Xhkzqo",
+    "url": "https://www.youtube.com/watch?v=3N7L8Xhkzqo",
+    "title": "Starship Explained for Kids",
+    "channel": "NASA",
+    "description": "Simple explanation of the Starship rocket system",
+    "thumbnail": "https://img.youtube.com/vi/3N7L8Xhkzqo/maxresdefault.jpg",
+    "duration": "4:15",
+    "ageAppropriate": true
+  },
+
+  "atlas-v-default": {
+    "videoId": "rJi3-3Hq8vE",
+    "url": "https://www.youtube.com/watch?v=rJi3-3Hq8vE",
+    "title": "Atlas V Rocket Launch",
+    "channel": "United Launch Alliance",
+    "description": "ULA Atlas V rocket launch to orbit",
+    "thumbnail": "https://img.youtube.com/vi/rJi3-3Hq8vE/maxresdefault.jpg",
+    "duration": "3:45",
+    "ageAppropriate": true
+  },
+
+  "electron-default": {
+    "videoId": "wfk6MV8lVY0",
+    "url": "https://www.youtube.com/watch?v=wfk6MV8lVY0",
+    "title": "Rocket Lab Electron Launch",
+    "channel": "Rocket Lab",
+    "description": "Small satellite launch from New Zealand",
+    "thumbnail": "https://img.youtube.com/vi/wfk6MV8lVY0/maxresdefault.jpg",
+    "duration": "2:30",
+    "ageAppropriate": true
+  },
+
+  "sls-artemis": {
+    "videoId": "CMLD0Lp0JBg",
+    "url": "https://www.youtube.com/watch?v=CMLD0Lp0JBg",
+    "title": "NASA Artemis I Moon Rocket Launch",
+    "channel": "NASA",
+    "description": "Historic Artemis mission to the Moon",
+    "thumbnail": "https://img.youtube.com/vi/CMLD0Lp0JBg/maxresdefault.jpg",
+    "duration": "8:12",
+    "ageAppropriate": true,
+    "featured": true
+  },
+
+  "crew-dragon-default": {
+    "videoId": "bIZsnKGV8TE",
+    "url": "https://www.youtube.com/watch?v=bIZsnKGV8TE",
+    "title": "Crew Dragon Launch to Space Station",
+    "channel": "SpaceX",
+    "description": "Astronauts launching to the ISS",
+    "thumbnail": "https://img.youtube.com/vi/bIZsnKGV8TE/maxresdefault.jpg",
+    "duration": "6:45",
+    "ageAppropriate": true,
+    "featured": true
+  },
+
+  "ariane-5-default": {
+    "videoId": "ScYADHW38sQ",
+    "url": "https://www.youtube.com/watch?v=ScYADHW38sQ",
+    "title": "Ariane 5 Rocket Launch from French Guiana",
+    "channel": "Arianespace",
+    "description": "European rocket launch from South America",
+    "thumbnail": "https://img.youtube.com/vi/ScYADHW38sQ/maxresdefault.jpg",
+    "duration": "4:30",
+    "ageAppropriate": true
+  },
+
+  "new-glenn-default": {
+    "videoId": "GQ98hGUe6FM",
+    "url": "https://www.youtube.com/watch?v=GQ98hGUe6FM",
+    "title": "Blue Origin New Glenn Explained",
+    "channel": "Blue Origin",
+    "description": "Introduction to Blue Origin's orbital rocket",
+    "thumbnail": "https://img.youtube.com/vi/GQ98hGUe6FM/maxresdefault.jpg",
+    "duration": "3:22",
+    "ageAppropriate": true
+  },
+
+  "soyuz-default": {
+    "videoId": "I1hKfhBmG_0",
+    "url": "https://www.youtube.com/watch?v=I1hKfhBmG_0",
+    "title": "Soyuz Rocket Launch to ISS",
+    "channel": "Roscosmos",
+    "description": "Russian Soyuz spacecraft launch",
+    "thumbnail": "https://img.youtube.com/vi/I1hKfhBmG_0/maxresdefault.jpg",
+    "duration": "5:15",
+    "ageAppropriate": true
+  },
+
+  "educational-how-rockets-work": {
+    "videoId": "4CkwGd7sJLk",
+    "url": "https://www.youtube.com/watch?v=4CkwGd7sJLk",
+    "title": "How Do Rockets Work? For Kids",
+    "channel": "SciShow Kids",
+    "description": "Simple explanation of rocket science for children",
+    "thumbnail": "https://img.youtube.com/vi/4CkwGd7sJLk/maxresdefault.jpg",
+    "duration": "4:05",
+    "ageAppropriate": true,
+    "educational": true
+  },
+
+  "educational-space-station": {
+    "videoId": "SGP6Y0Pnhe4",
+    "url": "https://www.youtube.com/watch?v=SGP6Y0Pnhe4",
+    "title": "Tour of the International Space Station",
+    "channel": "NASA",
+    "description": "Virtual tour of the ISS for students",
+    "thumbnail": "https://img.youtube.com/vi/SGP6Y0Pnhe4/maxresdefault.jpg",
+    "duration": "6:30",
+    "ageAppropriate": true,
+    "educational": true,
+    "featured": true
+  }
+}

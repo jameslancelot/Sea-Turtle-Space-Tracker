@@ -1,17 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { X, Video, FileText, Settings } from 'lucide-react';
+import { getLaunchVideos, extractYouTubeId } from '../lib/youtubeService';
+import VideoChoiceGallery, { VideoGalleryLoading, VideoGalleryEmpty } from './VideoChoiceGallery';
+import VideoLearningContext from './VideoLearningContext';
 
 /**
  * Helper Functions for Launch Detail Modal
  */
-
-// Extract YouTube video ID from various URL formats
-const extractYouTubeId = (url) => {
-  if (!url) return null;
-  const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
-  const match = url.match(regExp);
-  return (match && match[7].length === 11) ? match[7] : null;
-};
 
 // Generate kid-friendly explanations based on mission data
 const generateKidFriendlyExplanation = (launch) => {
@@ -101,12 +96,40 @@ const generateFunFacts = (launch) => {
 };
 
 /**
- * Video Tab Component
+ * Enhanced Video Tab Component with YouTube API Integration
  */
 const VideoTab = ({ launch }) => {
+  const [videos, setVideos] = useState([]);
+  const [selectedVideo, setSelectedVideo] = useState(null);
   const [videoLoaded, setVideoLoaded] = useState(false);
-  const videoUrl = launch.vid_urls?.[0]?.url || launch.vidURLs?.[0];
-  const videoId = extractYouTubeId(videoUrl);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Load videos on mount
+  useEffect(() => {
+    loadVideos();
+  }, [launch]);
+
+  async function loadVideos() {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const foundVideos = await getLaunchVideos(launch);
+      setVideos(foundVideos);
+
+      if (foundVideos.length > 0) {
+        setSelectedVideo(foundVideos[0]); // Auto-select best video
+      }
+    } catch (err) {
+      console.error('Failed to load videos:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const selectedVideoId = selectedVideo ? extractYouTubeId(selectedVideo.url || selectedVideo.id) : null;
 
   return (
     <div className="video-tab p-6">
@@ -125,54 +148,83 @@ const VideoTab = ({ launch }) => {
         </div>
       )}
 
-      {/* Video Content */}
-      {videoUrl && videoId ? (
-        videoLoaded ? (
-          <iframe
-            src={`https://www.youtube.com/embed/${videoId}`}
-            className="w-full aspect-video rounded-lg shadow-lg"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            title="Launch Video"
-          />
-        ) : (
-          <div
-            onClick={() => setVideoLoaded(true)}
-            className="cursor-pointer relative group"
-          >
-            <img
-              src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`}
-              alt="Video thumbnail"
-              className="w-full aspect-video rounded-lg shadow-lg object-cover"
-              onError={(e) => {
-                // Fallback to medium quality thumbnail
-                e.target.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
-              }}
-            />
-            <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/40 transition rounded-lg">
-              <button className="bg-[#F7941D] hover:bg-[#FDB913] text-white font-black text-2xl py-6 px-10 rounded-full shadow-2xl transform group-hover:scale-110 transition">
-                ▶ Watch Launch Video
-              </button>
-            </div>
-          </div>
-        )
-      ) : (
-        <div className="no-video-state bg-gradient-to-br from-cyan-50 to-teal-50 p-8 rounded-lg border-2 border-teal-200 text-center">
-          <div className="text-6xl mb-4">🎥</div>
-          <p className="text-lg text-gray-600 mb-4">
-            No video available yet for this launch
-          </p>
-          {launch.webcast_live && (
-            <p className="text-sm text-teal-700 font-semibold">
-              Check back during launch time - live stream may become available!
-            </p>
-          )}
-          {!launch.webcast_live && new Date(launch.net) > new Date() && (
-            <p className="text-sm text-teal-700">
-              Video will be available closer to launch date
-            </p>
-          )}
+      {/* Loading State */}
+      {loading && <VideoGalleryLoading />}
+
+      {/* Error State */}
+      {error && !loading && (
+        <div className="bg-red-50 border-2 border-red-200 rounded-lg p-4 text-center">
+          <p className="text-sm text-red-600">⚠️ {error}</p>
         </div>
+      )}
+
+      {/* No Videos State */}
+      {!loading && !error && videos.length === 0 && (
+        <VideoGalleryEmpty launch={launch} />
+      )}
+
+      {/* Video Player */}
+      {!loading && selectedVideo && selectedVideoId && (
+        <>
+          {videoLoaded ? (
+            <iframe
+              src={`https://www.youtube.com/embed/${selectedVideoId}`}
+              className="w-full aspect-video rounded-lg shadow-lg"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              title={selectedVideo.title || 'Launch Video'}
+            />
+          ) : (
+            <div
+              onClick={() => setVideoLoaded(true)}
+              className="cursor-pointer relative group"
+            >
+              <img
+                src={selectedVideo.thumbnail || `https://img.youtube.com/vi/${selectedVideoId}/maxresdefault.jpg`}
+                alt="Video thumbnail"
+                className="w-full aspect-video rounded-lg shadow-lg object-cover"
+                onError={(e) => {
+                  // Fallback to medium quality thumbnail
+                  e.target.src = `https://img.youtube.com/vi/${selectedVideoId}/hqdefault.jpg`;
+                }}
+              />
+              <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/40 transition rounded-lg">
+                <button className="bg-[#F7941D] hover:bg-[#FDB913] text-white font-black text-2xl py-6 px-10 rounded-full shadow-2xl transform group-hover:scale-110 transition">
+                  ▶ Watch Launch Video
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Video Source Badge */}
+          {selectedVideo.source && (
+            <div className="mt-2 flex items-center justify-center gap-2 text-xs text-gray-500">
+              {selectedVideo.source === 'api' && '✅ Official Launch Library Video'}
+              {selectedVideo.source === 'youtube' && '🔍 YouTube Search Result'}
+              {selectedVideo.source === 'curated' && '🎓 Curated Educational Pick'}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Video Choice Gallery (if multiple videos available) */}
+      {!loading && videos.length > 1 && (
+        <VideoChoiceGallery
+          videos={videos}
+          selectedVideo={selectedVideo}
+          onSelect={(video) => {
+            setSelectedVideo(video);
+            setVideoLoaded(false); // Reset to show thumbnail
+          }}
+        />
+      )}
+
+      {/* Educational Learning Context */}
+      {!loading && selectedVideo && (
+        <VideoLearningContext
+          video={selectedVideo}
+          launch={launch}
+        />
       )}
     </div>
   );

@@ -19,7 +19,7 @@ const generateKidFriendlyExplanation = (launch) => {
   } else if (orbit.includes('geo') || orbit.includes('geostationary')) {
     return "This rocket is going way up to Geostationary Orbit - so high that it stays over the same spot on Earth all day! That's where weather satellites and TV satellites hang out.";
   } else if (orbit.includes('lunar') || orbit.includes('moon') || name.includes('moon')) {
-    return "This rocket is going to the Moon! That's 238,000 miles away - sea turtles would need to swim for 238 million years to get that far!";
+    return "This rocket is going to the Moon! That's 238,000 miles away - if a sea turtle could swim there non-stop at cruising speed, it would take about 27 years!";
   } else if (missionType.includes('communication') || name.includes('starlink')) {
     return "This mission is launching a satellite that helps us talk to each other from far away - like a super-powered cell phone tower in space!";
   } else if (missionType.includes('science') || missionType.includes('research')) {
@@ -74,7 +74,7 @@ const generateFunFacts = (launch) => {
   }
 
   if (orbit.includes('leo') || orbit.includes('low earth')) {
-    facts.push("🌍 Low Earth Orbit is where satellites take pictures of Earth - including photos of sea turtle habitats!");
+    facts.push("🌍 Low Earth Orbit is where satellites take pictures of Earth - including photos of oceans where sea turtles live!");
   }
 
   // Mission-specific facts

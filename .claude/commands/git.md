@@ -6,21 +6,22 @@ allowed-tools: ["Bash"]
 
 # Enhanced Git Workflow with CodeRabbit Integration
 
-Execute complete git workflow with AI-powered code review and intelligent commit message generation.
+Execute the enhanced git workflow script with linting, CodeRabbit review, and smart commits.
+
+```bash
+bash .claude/commands/git.sh $ARGUMENTS
+```
 
 ## Command: `/git $ARGUMENTS`
 
 **What this command does:**
 
-1. **Pre-commit Quality Checks**: Verify required tools and git status
-2. **CodeRabbit AI Review**: Intelligent code analysis - **blocks on critical issues**
-3. **Browser Error Testing**: Start dev server, check for console errors - **blocks on crashes**
-4. **Smart Commit Messages**: AI-generated conventional commit messages from diff analysis
-5. **Automated Git Flow**: Stage, commit, and push with intelligent error handling
-6. **Vercel Deployment**: Deploy to production with build validation
-7. **Post-deployment Validation**: Verify deployment URL and check for errors
+1. **Pre-commit Quality Checks**: Run ESLint to catch errors
+2. **CodeRabbit AI Review**: Intelligent code analysis using `--plain` mode
+3. **Smart Commit Messages**: AI-generated conventional commit messages from diff analysis
+4. **Automated Git Flow**: Stage, commit, and push with intelligent error handling
 
-**🛡️ Safety guarantee**: Critical errors (security, crashes) **block deployment by default**
+**🛡️ Safety guarantee**: Linting errors and critical CodeRabbit issues **block deployment in strict mode**
 
 ## Review Modes:
 

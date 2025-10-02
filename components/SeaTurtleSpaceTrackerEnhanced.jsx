@@ -6,6 +6,7 @@ import {
   Palmtree, Fish, Anchor, Zap, Printer, Map, Share2
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import LaunchDetailModal from './LaunchDetailModal';
 import { useURLState } from '../hooks/useURLState';
@@ -448,11 +449,11 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
       <header className="bg-gradient-to-r from-teal-800/90 to-blue-800/90 backdrop-blur-sm border-b-2 border-yellow-400/30 relative z-10 no-print">
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <Link href="/" className="flex items-center gap-3 cursor-pointer group">
               <img
                 src="/images/NEW-LOGO.png"
                 alt="Sea Turtle Space Tracker"
-                className="w-14 h-14 object-contain hover:scale-110 transition-transform"
+                className="w-14 h-14 object-contain group-hover:scale-110 transition-transform"
                 onError={(e) => {
                   e.target.style.display = 'none';
                   e.target.nextSibling.style.display = 'block';
@@ -466,7 +467,7 @@ const SeaTurtleSpaceTrackerEnhanced = () => {
                 </h1>
                 <p className="text-xs text-yellow-300">PVPV/Rawlings Elementary - Surfing to Success! 🐢</p>
               </div>
-            </div>
+            </Link>
 
             {/* View Mode & Actions */}
             <div className="flex items-center gap-2">

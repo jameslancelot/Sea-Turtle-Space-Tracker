@@ -53,7 +53,7 @@ const generateFunFacts = (launch) => {
   }
 
   // Speed fact (always relevant)
-  facts.push("🏃 This rocket will travel about 17,500 mph - that's 291 times faster than a sea turtle swims!");
+  facts.push("🏃 This rocket will travel about 17,500 mph - that's 795 times faster than a sea turtle's fastest swim speed!");
 
   // Launch site facts
   if (location.includes('florida') || location.includes('cape canaveral') || location.includes('kennedy')) {
